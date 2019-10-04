@@ -1,0 +1,65 @@
+---
+
+- name: "{{ansible_distribution}}: install mod_php"
+  yum:
+    name: mod_php
+    state: present
+  notify: restart-apache
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install mod_php"
+  dnf:
+    name: mod_php
+    state: present
+  notify: restart-apache
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install php-mysql module"
+  yum:
+    name: php-mysql
+    state: present
+  notify: restart-apache
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install php-mysql module"
+  dnf:
+    name: php-mysql
+    state: present
+  notify: restart-apache
+  when: ansible_distribution == 'Fedora'
+
+#- name: "{{ansible_distribution}}: download wordpress latest"
+  #get_url:
+    #url: https://wordpress.org/latest.zip
+    #dest: /srv
+    #mode: 0644
+
+- name: "{{ansible_distribution}}: download and unpack wordpress latest"
+  unarchive:
+    dest: /srv
+    group: apache
+    owner: apache
+    remote_src: yes
+    src: https://wordpress.org/latest.zip
+
+- name: "{{ansible_distribution}}: assign correct permissions to the files and directories"
+  command: "{{item}}"
+  with_items:
+    - find /srv/wordpress -type d -exec chmod 0770 {} \;
+    - find /srv/wordpress -type f -exec chmod 0660 {} \;
+
+- name: "{{ansible_distribution}}: allow selinux to access wordpress data files"
+  sefcontext:
+    reload: yes
+    setype: httpd_sys_content_t
+    state: present
+    target: '/srv/wordpress(/.*)?'
+
+- name: "{{ansible_distribution}}: apply selinux contexts"
+  command: chcon -t httpd_sys_content_t /srv/wordpress -R
+
+- name: "{{ansible_distribution}}: create database"

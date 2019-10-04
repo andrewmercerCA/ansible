@@ -1,0 +1,14 @@
+--- # install the latest version of youtube-dl as per the documentation below
+# https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl
+
+- name: "{{ansible_distribution}}: cleaning up older version"
+  ignore_errors: yes
+  file:
+    path: /usr/local/bin/youtube-dl
+    state: absent
+
+- name: "{{ansible_distribution}}: install youtube-dl"
+  get_url:
+    dest: /usr/local/bin
+    mode: 0755
+    url: https://yt-dl.org/latest/youtube-dl

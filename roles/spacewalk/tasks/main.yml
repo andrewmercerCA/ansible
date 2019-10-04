@@ -1,0 +1,41 @@
+---
+
+- name: "{{ansible_distribution}}: delete spacewalk"
+  include: uninstall_spacewalk.yml
+  when: uninstall_spacewalk == "True"
+
+- name: "{{ansible_distribution}}: run selinux stuff"
+  seboolean:
+    name: tomcat_can_network_connect_db
+    persistent: yes
+    state: yes
+  when: uninstall_spacewalk != 'True'
+
+- name: "{{ansible_distribution}}: install the spacewalk repo"
+  yum:
+    name: https://copr-be.cloud.fedoraproject.org/results/@spacewalkproject/spacewalk-2.8/epel-7-x86_64/00736372-spacewalk-repo/spacewalk-repo-2.8-11.el7.centos.noarch.rpm
+  when:
+    - ansible_os_family == 'RedHat'
+    - uninstall_spacewalk != 'True'
+
+- name: "{{ansible_distribution}}: install java packages repo"
+  get_url:
+    dest: /etc/yum.repos.d
+    url: https://copr.fedorainfracloud.org/coprs/g/spacewalkproject/java-packages/repo/epel-7/group_spacewalkproject-java-packages-epel-7.repo
+
+- name: "{{ansible_distribution}}: install spacewalk"
+  yum:
+    name:
+      - spacewalk-setup-postgresql
+      - spacewalk-postgresql
+  when: uninstall_spacewalk != 'True'
+
+- name: "{{ansible_distribution}}: create the answer file"
+  template:
+    src: answer.txt.j2
+    dest: /tmp/answer.txt
+  when: uninstall_spacewalk != 'True'
+
+- name: "{{ansible_distribution}}: run spacewalk setup"
+  shell: spacewalk-setup --answer-file=/tmp/answer.txt --non-interactive
+  when: uninstall_spacewalk != 'True'

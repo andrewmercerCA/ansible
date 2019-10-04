@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - python_development.yml 
+  # post_tasks: 
+  # tags:

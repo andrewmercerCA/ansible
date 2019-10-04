@@ -1,0 +1,44 @@
+---
+- name: "{{ansible_distribution}}: check that virtualization is enabled"
+  shell: grep -E '(vmx|svm)' /proc/cpuinfo
+  register: cpuinfo
+
+- name: "{{ansible_distribution}}: install kvm and related packages"
+  yum:
+    name:
+      - qemu-kvm
+      - qemu-img
+      - virt-manager
+      - libvirt
+      - libvirt-python
+      - libvirt-client
+      - virt-install
+      - virt-viewer
+      - bridge-utils
+      - libguestfs-tools
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install kvm and related packages"
+  dnf:
+    name:
+      - qemu-kvm
+      - qemu-img
+      - virt-manager
+      - libvirt
+      - libvirt-python
+      - libvirt-client
+      - virt-install
+      - virt-viewer
+      - bridge-utils
+      - libguestfs-tools
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: start and enable libvirtd"
+  service:
+    enabled: yes
+    name: libvirtd.service
+    state: started

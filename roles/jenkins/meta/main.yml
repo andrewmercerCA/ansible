@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: gradle }
+  - { role: openjdk }

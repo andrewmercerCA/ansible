@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - nodejs.yml 
+  # post_tasks: 
+  # tags:

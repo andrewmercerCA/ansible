@@ -1,0 +1,28 @@
+---
+- name: "[Debian] Install packages"
+  apt:
+    name:
+      - alsa-base
+      - alsa-utils
+      - espeak
+      - libasound2-dev
+    state: present
+
+- name: "[Debian] Install the asound config file"
+  file:
+    src: /robotics/ansible/playbooks/chapter02/files/asoundrc
+    dest: ~/.asoundrc
+    owner: andrew
+    group: andrew
+    mode: 0664
+
+#- name: "[Debian] Set the default espeak voice profile"
+#  file:
+#    src: /usr/lib/arm-linux-gnueabihf/espeak-data/voices/[ desired_profile ]
+#    dest: /usr/lib/arm-linux-gnueabihf/espeak-data/voices/[ default_file ]
+#    owner: root
+#    group: root
+#    mode: 0644
+
+#- name: "[Debian] Install custom espeak responses"
+#todo

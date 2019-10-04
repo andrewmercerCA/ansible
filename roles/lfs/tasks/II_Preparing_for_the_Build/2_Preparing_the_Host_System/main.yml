@@ -1,0 +1,14 @@
+--- # http://www.linuxfromscratch.org/lfs/view/stable/chapter02/introduction.html
+## Chapter 2. Preparing the Host System
+
+- name: "{{ ansible_distribution }}: Chapter 2. Preparing the Host System"
+  debug:
+    msg: |
+      Linux From Scratch - Version 8.4
+      Chapter 2. Preparing the Host System
+
+- name: "{{ansible_distribution}}: 2.1. Introduction"
+  include: introduction.yml
+
+- name: "{{ansible_distribution}}: 2.2. Host System Requirements"
+  include: hostreqs.yml

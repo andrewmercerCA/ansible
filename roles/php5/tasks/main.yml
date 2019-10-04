@@ -1,0 +1,9 @@
+---
+
+- name: "{{ansible_distribution}}: install PHP5"
+  yum:
+    name: php
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'

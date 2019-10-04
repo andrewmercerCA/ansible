@@ -1,0 +1,34 @@
+---
+- name: "{{ansible_distribution}}: install mongodb repo key"
+  apt_key:
+    file: /etc/apt/sources.list.d/mongodb-org-3.2.list
+    id: EA312927
+    keyserver: hkp://keyserver.ubuntu.com:80
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: "{{ansible_distribution}}: install mongodb"
+  apt:
+    name: mongodb-org
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: "{{ ansible_distribution }}: Install desktop packages from default repos"
+  dnf:
+    name:
+      - mongodb
+      - mongodb-server
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ ansible_distribution }}: start and enable mongodb"
+  service:
+    name: mongod
+    enabled: yes
+    state: started
+
+- name: "{{ ansible_distribution }}: things that still need to be done"
+  debug:
+    msg:
+      - 'mongod admin user and security'

@@ -1,0 +1,25 @@
+---
+
+- name: "{{ ansible_distribution }}: Chapter 4. Final Preparations"
+  debug:
+    msg: |
+      Linux From Scratch - Version 8.4
+      Chapter 4. Final Preparations
+
+- name: "{{ansible_distribution}}: 4.1. Introduction"
+  include: introduction.yml
+
+- name: "{{ansible_distribution}}: 4.2. Creating the $LFS/tools Directory"
+  include: creatingtoolsdir.yml
+
+- name: "{{ansible_distribution}}: 4.3. Adding the LFS User"
+  include: addinguser.yml
+
+- name: "{{ansible_distribution}}: 4.4. Setting Up the Environment"
+  include: settingenvironment.yml
+
+- name: "{{ansible_distribution}}: 4.5. About SBUs"
+  include: aboutsbus.yml
+
+- name: "{{ansible_distribution}}: 4.6. About the Test Suites"
+  include: abouttestsuites.yml

@@ -1,0 +1,9 @@
+--- # install python development tools
+
+- name: "{{ansible_distribution}}: install python development packages"
+  yum:
+    name:
+      - python-devel
+      - python3-devel
+  when:
+    - ansible_os_family == 'RedHat'

@@ -1,0 +1,21 @@
+---
+
+- name: "{{ansible_distribution}}: install Ruby"
+  dnf:
+    name:
+      - python2
+      - python3
+      - python-pip
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install Ruby"
+  yum:
+    name:
+      - python2
+      - python3
+      - python-pip
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'

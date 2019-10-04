@@ -1,0 +1,17 @@
+---
+
+- name: "{{ansible_distribution}}: install openjdk"
+  yum:
+    name:
+      - java-1.8.0-openjdk
+      - java-1.8.0-openjdk-headless
+  when:
+    - ansible_distribution != 'Fedora'
+    - ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: install openjdk"
+  dnf:
+    name:
+      - java-1.8.0-openjdk
+      - java-1.8.0-openjdk-headless
+  when: ansible_distribution == 'Fedora'

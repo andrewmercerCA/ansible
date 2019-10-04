@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - rpi_robotics.yml 
+  # post_tasks: 
+  # tags:

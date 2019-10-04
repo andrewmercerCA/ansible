@@ -1,0 +1,8 @@
+---
+
+- name: restart apache
+  service:
+    name: httpd
+    state: restarted
+  listen: restart-apache
+  when: ansible_os_family == 'RedHat'

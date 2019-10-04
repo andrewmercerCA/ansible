@@ -1,0 +1,46 @@
+--- # http://www.linuxfromscratch.org/lfs/view/stable/chapter03/introduction.html
+## 3.1. Introduction
+
+- name: "{{ansible_distribution}}: create the sources directory"
+  file:
+    mode: a+rwx
+    path: "{{lfs}}/sources"
+    state: directory
+
+#- name: "{{ansible_distribution}}: download the sources list file"
+#  get_url:
+#    dest: "{{lfs}}/sources"
+#    url: http://www.linuxfromscratch.org/lfs/view/stable/wget-list
+
+## NOTE
+### Not doing this until I can figure out how to make it idempotent
+#- name: "{{ansible_distribution}}: install the package list file"
+#  copy:
+#    dest: "{{lfs}}/sources/package-list"
+#    src: package-list
+#
+#- name: "{{ansible_distribution}}: get a list of the packages"
+#  command: cat "{{lfs}}/sources/package-list"
+#  register: package_list
+#
+#- name: "{{ansible_distribution}}: show me the list of files"
+#  debug: msg={{package_list.stdout_lines}}
+#
+#- name: "{{ansible_distribution}}: install the sources list file"
+#  copy:
+#    dest: "{{lfs}}/sources/wget-list"
+#    src: wget-list
+#
+#- name: "{{ansible_distribution}}: download the required sources"
+#  get_url:
+#    dest: "{{lfs}}/sources"
+#    url: file:///tmp/sources/package-list
+#  #command: wget --input-file="{{lfs}}/sources/wget-list" --continue --directory-prefix={{lfs}}/sources
+#  #args:
+#  #  creates: package_list
+#
+# optionally check the md5sums
+#pushd $LFS/sources
+#md5sum -c md5sums
+#popd
+#

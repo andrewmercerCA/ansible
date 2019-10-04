@@ -1,0 +1,5 @@
+---
+
+- name: "{{ ansible_distribution }}: 5.2. Toolchain Technical Notes"
+  debug:
+    msg: 5.2. Toolchain Technical Notes

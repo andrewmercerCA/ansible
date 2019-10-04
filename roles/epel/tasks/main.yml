@@ -1,0 +1,16 @@
+---
+
+- name: "{{ansible_distribution}}: install epel-release"
+  yum:
+    name:
+      - epel-release
+      - unzip
+  when:
+    - ansible_distribution != 'Amazon'
+    - ansible_distribution != 'Fedora'
+    - ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: install epel-release"
+  yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+  when: ansible_distribution == 'Amazon'

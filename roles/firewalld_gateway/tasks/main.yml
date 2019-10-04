@@ -1,0 +1,74 @@
+---
+#- name: "{{ansible_distribution}}: make sure there are 2 network interfaces or fail immediately with a helpful message"
+#  shell: ip addr show eth0 && ip addr show eth1
+#  register: dual_interfaces
+#
+#- name: "{{ansible_distribution}}: check for external eth0 interface"
+#- name: "{{ansible_distribution}}: check for internal eth1 interface"
+#
+#- name: "{{ansible_distribution}}: create external eth0 interface"
+#- name: "{{ansible_distribution}}: create internal eth1 interface"
+#
+#- name: "{{ansible_distribution}}: check for external firewalld zone"
+#- name: "{{ansible_distribution}}: check for internal firewalld zone"
+#
+- name: "{{ansible_distribution}}: create external zone and assign to eth0"
+  shell: firewall-cmd --zone=external --add-interface=eth0 --permanent
+  notify: firewalld-complete-reload
+
+- name: "{{ansible_distribution}}: create internal zone and assign to eth1"
+  shell: firewall-cmd --zone=internal --add-interface=eth1 --permanent
+  notify: firewalld-complete-reload
+
+- name: "{{ansible_distribution}}: install firewalld"
+  yum:
+    name: firewalld
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: start and enable firewall"
+  service:
+    enabled: yes
+    name: firewalld
+    state: started
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: enable ip forwarding in the kernel"
+  sysctl:
+    name: net.ipv4.ip_forward
+    reload: yes
+    state: present
+    sysctl_set: yes
+    value: 1
+
+- name: "{{ansible_distribution}}: enable nonlocal bind in the kernel"
+  sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    reload: yes
+    state: present
+    sysctl_set: yes
+    value: 1
+
+- name: "{{ansible_distribution}}: add masquerade to firewall"
+  firewalld:
+    masquerade: yes
+    permanent: true
+    state: enabled
+    zone: external
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: forward rule #1"
+  notify: firewalld-complete-reload
+  shell: firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -i eth1 -o eth0 -j ACCEPT
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: forward rule #2"
+  notify: firewalld-complete-reload
+  shell: firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -i eth0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: install internal routes"
+  template:
+    dest: /etc/sysconfig/network-scripts/route-eth1
+    src: route.eth1.j2
+  when: ansible_os_family == 'RedHat'

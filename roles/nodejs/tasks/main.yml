@@ -1,0 +1,21 @@
+--- # Install Node.js version 8
+
+- name: "{{ansible_distribution}}: install node.js yum repository"
+  shell: curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: install node.js"
+  yum:
+    name: nodejs
+    state: latest
+    update_cache: yes
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install node.js"
+  dnf:
+    name: nodejs
+    state: latest
+    update_cache: yes
+  when: ansible_distribution == 'Fedora'

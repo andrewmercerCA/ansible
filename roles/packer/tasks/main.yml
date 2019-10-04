@@ -1,0 +1,28 @@
+---
+
+- name: "{{ansible_distribution}}: Install dependencies (not sure why this package is needed)"
+  dnf:
+    name: libselinux-python
+    state: installed
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: Install dependencies (not sure why this package is needed)"
+  yum:
+    name: libselinux-python
+    state: installed
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: Download and Unpack Packer"
+  unarchive:
+    dest: /opt
+    remote_src: yes
+    src: https://releases.hashicorp.com/packer/1.3.1/packer_1.3.1_linux_amd64.zip
+
+- name: "{{ansible_distribution}}: Create symlink to binary to fix conflict with name 'packer'"
+  # cracklib also has a library named packer which creates a conflict with Hashicorp's packer
+  file:
+    dest: /usr/local/bin/packer.io
+    src: /opt/packer
+    state: link

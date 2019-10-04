@@ -1,0 +1,16 @@
+---
+
+- name: "{{ ansible_distribution }}: Chapter 3. Packages and Patches"
+  debug:
+    msg: |
+      Linux From Scratch - Version 8.4
+      Chapter 3. Packages and Patches
+
+- name: "{{ansible_distribution}}: 3.1. Introduction"
+  include: introduction.yml
+
+- name: "{{ansible_distribution}}: 3.2. All Packages"
+  include: packages.yml
+
+- name: "{{ansible_distribution}}: 3.3. Needed Patches"
+  include: patches.yml

@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - cloud_infra.yml 
+  # post_tasks: 
+  # tags:

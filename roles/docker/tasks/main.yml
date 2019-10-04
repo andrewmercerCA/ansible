@@ -1,0 +1,111 @@
+---
+
+## install docker dependencies
+- name: "{{ansible_distribution}}: install docker dependencies"
+  dnf:
+    name:
+      - yum-utils
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install docker dependencies"
+  yum:
+    name:
+      - yum-utils
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+# TODO: check if docker is installed first before installing all the docker things
+##- name: "{{ansible_distribution}}: check if docker is already installed"
+##yum:
+##name:
+##register: docker_installed
+
+- name: "{{ansible_distribution}}: remove old versions of docker"
+  yum:
+    name:
+      - docker
+      - docker-common
+      - docker-selinux
+      - docker-engine-selinux
+      - docker-engine
+    state: absent
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: Remove old versions of docker"
+  dnf:
+    name:
+      - docker
+      - docker-common
+      - docker-selinux
+      - docker-engine-selinux
+      - docker-engine
+    state: absent
+  when: ansible_distribution == 'Fedora'
+
+#- name: "{{ansible_distribution}}: check for docker-ce repo"
+#  stat: path=/etc/yum.repos.d/docker-ce.repo
+#  register: docker_repo_path
+
+- name: "{{ansible_distribution}}: Install Docker official repository"
+  command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+    - ansible_distribution != 'Amazon'
+#    - docker_repo_path == False
+
+- name: "{{ansible_distribution}}: Install Docker official repository"
+  command: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+  when:
+    - ansible_distribution == 'Fedora'
+#    - docker_repo_path == False
+
+- name: "{{ansible_distribution}}: Update cache and accept Docker gpg key"
+  command: dnf --assumeyes makecache
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: Install Docker"
+  yum:
+    name: docker-ce
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+    - ansible_distribution != 'Amazon'
+
+#- name: "{{ansible_distribution}}: check if docker is enabled in amazon-linux-extras"
+#  shell: amazon-linux-extras list|grep -i docker | awk '{print $3}'
+#  register: docker_repo_status
+
+- name: "{{ansible_distribution}}: enable docker in amazon-linux-extras repo"
+  shell: amazon-linux-extras enable docker
+  when:
+    - ansible_distribution == 'Amazon'
+    #- docker_repo_status.stdout != "enabled"
+
+- name: "{{ansible_distribution}}: Install Docker"
+  yum:
+    name: docker
+  when:
+    - ansible_distribution == 'Amazon'
+    #- docker_repo_status.stdout == "enabled"
+
+- name: "{{ansible_distribution}}: Install Docker"
+  dnf:
+    name: docker-ce
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ ansible_distribution }}: start and enable services"
+  service:
+    enabled: yes
+    name: docker
+    state: started
+
+- name: "{{ansible_distribution}}: add user to docker group"
+  user:
+    groups: docker
+    name: "{{ansible_user_id}}"

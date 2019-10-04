@@ -1,0 +1,7 @@
+---
+
+- name: "{{ ansible_distribution }}: Chapter 1. Introduction"
+  debug:
+    msg: |
+      Linux From Scratch - Version 8.4
+      Chapter 1. Introduction

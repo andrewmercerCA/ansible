@@ -1,0 +1,87 @@
+---
+- name: "{{ansible_distribution}}: install iptables-persistent"
+  apt:
+    name:
+      - iptables
+      - iptables-persistent
+    state: present
+  tags: firewall, iptables
+  when: ansible_os_family == 'Debian'
+
+- name: "{{ansible_distribution}}: install firewalld"
+  yum:
+    name: firewalld
+    state: present
+  tags: firewall, iptables
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: firewalld service"
+  service:
+    name: firewalld
+    state: started
+  tags: firewall, firewalld
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: check if firewalld is installed"
+  yum:
+    list=firewalld
+  register: firewalld_installed
+
+- name: "{{ansible_distribution}}: DROP production ips"
+  firewalld:
+    immediate: yes
+    permanent: true
+    rich_rule: 'rule family="ipv4" source address="{{item}}" drop'
+    state: enabled
+    zone: external
+  notify: reload-firewalld
+  tags: firewall, firewalld
+  when:
+    - ansible_os_family == 'RedHat'
+    - firewalld_installed.results[0].yumstate == 'installed'
+  with_items:
+    - x.x.x.x
+    - x.x.x.x
+
+- name: "{{ansible_distribution}}: REJECT production ips"
+  firewalld:
+    immediate: yes
+    permanent: true
+    rich_rule: 'rule family="ipv4" source address="{{item}}" reject'
+    state: enabled
+    zone: external
+  notify: reload-firewalld
+  tags: firewall, firewalld
+  when: ansible_os_family == 'RedHat'
+  with_items:
+    - x.x.x.x
+    - x.x.x.x
+
+- name: "{{ansible_distribution}}: DROP production ips"
+  iptables:
+    action: append
+    chain: OUTPUT
+    destination: "{{item}}"
+    jump: DROP
+    table: filter
+  when: ansible_os_family == 'Debian'
+  with_items:
+    - x.x.x.x
+    - x.x.x.x
+
+- name: "{{ansible_distribution}}: REJECT production ips"
+  iptables:
+    action: append
+    chain: OUTPUT
+    destination: "{{item}}"
+    jump: REJECT
+    table: filter
+  notify: reload-firewalld
+  when: ansible_os_family == 'Debian'
+  with_items:
+    - x.x.x.x
+    - x.x.x.x
+
+- name: "{{ansible_distribution}}: save the iptable rules"
+  shell: invoke-rc.d iptables-persistent save
+  when: ansible_os_family == 'Debian'

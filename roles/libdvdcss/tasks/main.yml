@@ -1,0 +1,27 @@
+---
+
+- name: "{{ansible_distribution}}: clone the repo"
+  git:
+    clone: yes
+    dest: /tmp/libdvdcss
+    repo: http://code.videolan.org/videolan/libdvdcss.git
+
+- name: "{{ansible_distribution}}: run autoconf to bootstrap"
+  args:
+    chdir: /tmp/libdvdcss
+  shell: autoreconf -i
+
+- name: "{{ansible_distribution}}: configure"
+  args:
+    chdir: /tmp/libdvdcss
+  shell: ./configure --prefix=/usr
+
+- name: "{{ansible_distribution}}: make and install"
+  args:
+    chdir: /tmp/libdvdcss
+  shell: make && sudo make install
+
+- name: "{{ansible_distribution}}: delete the repo directory"
+  file:
+    path: /tmp/libdvdcss
+    state: absent

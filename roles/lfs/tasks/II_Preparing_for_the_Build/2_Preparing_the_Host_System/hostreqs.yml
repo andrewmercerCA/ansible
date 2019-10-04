@@ -1,0 +1,7 @@
+--- # http://www.linuxfromscratch.org/lfs/view/stable/chapter02/hostreqs.html
+## 2.2. Host System Requirements
+
+- name: "{{ ansible_distribution }}: 2.2. Host System Requirements"
+  debug:
+    msg: Development Tools have been installed as a dependency of this role
+

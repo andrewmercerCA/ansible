@@ -1,0 +1,33 @@
+---
+
+- name: "{{ansible_distribution}}: install development tools"
+  shell: dnf -y groupinstall "Development Tools"
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install development libraries"
+  shell: dnf -y groupinstall "Development Libraries"
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install autoconf automake"
+  dnf:
+    name:
+      - autoconf
+      - automake
+      - libtool
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install development tools"
+  shell: yum -y groupinstall "Development Tools"
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install autoconf automake"
+  yum:
+    name:
+      - autoconf
+      - automake
+      - libtool
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'

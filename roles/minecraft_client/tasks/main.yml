@@ -1,0 +1,20 @@
+--- # install the minecraft client on linux distros
+
+- name: "{{ansible_distribution}}: creating minecraft app directory"
+  file:
+    path: {{ansible_user_dir}}/.local/minecraft/bin
+    mode: 0770
+    owner: "{{ansible_user_id}}"
+    group: "{{ansible_user_gid}}"
+    state: directory
+
+- name: "{{ansible_distribution}}: downloading minecraft binary"
+  get_url:
+    url: http://s3.amazonaws.com/Minecraft.Download/launcher/Minecraft.jar
+    dest: {{ansible_user_dir}}/.local/minecraft/bin/Minecraft.jar
+
+- name: "{{ansible_distribution}}: install minetest"
+  dnf:
+    name: minetest
+    state: latest
+  when: ansible_distribution == 'Fedora'

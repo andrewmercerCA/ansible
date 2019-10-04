@@ -1,0 +1,6 @@
+--- # http://www.linuxfromscratch.org/lfs/view/stable/chapter02/introduction.html
+## 2.1. Introduction
+
+- name: "{{ ansible_distribution }}: 2.1. Introduction"
+  debug:
+    msg: 2.1. Introduction

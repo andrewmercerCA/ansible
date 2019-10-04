@@ -1,0 +1,57 @@
+---
+- name: "[Red Hat] Install infrastructure packages"
+  yum:
+    name:
+      - pexpect
+      - python-pip
+      - screen
+    state: present
+
+- name: "[Red Hat] Install pip infrastructure packages"
+  pip:
+    name:
+      - boto
+
+- name: "[Red Hat] Update pip"
+  pip:
+    name: pip
+    extra_args: --upgrade
+
+- name: "[Red Hat] Download Heroku source"
+  get_url:
+    url: https://cli-assets.heroku.com/branches/stable/heroku-linux-amd64.tar.gz
+    dest: /tmp/heroku-linux-amd64.tar.gz
+
+- name: "[Red Hat] Extract Heroku source"
+  unarchive:
+    src: /tmp/heroku-linux-amd64.tar.gz
+    dest: /usr/local
+    remote_src: True
+
+- name: "[Red Hat] Run Heroku install script"
+  command: /usr/local/heroku/install
+
+- name: "[Red Hat] Install pexpect 3.3"
+  pip:
+    name: pexpect
+    version: 3.3
+
+- name: "[Red Hat] Update and initialize heroku-cli"
+  expect:
+    command: /usr/local/bin/heroku
+    responses:
+      (?i)Email: "{{email}}"
+      (?i)Password: "{{password}}"
+
+- name: "[Red Hat] Install the AWS SDK"
+  pip:
+    name: awscli
+
+- name: "[Red Hat] Initialize the AWS SDK"
+  expect:
+    command: aws configure
+    responses:
+      (?i)AWS Access Key ID: "{{aws_key_id}}"
+      (?i)AWS Secret Access Key: "{{aws_secret_access_key}}"
+      (?i)Default region name: "{{default_region}}"
+      (?i)Default output format: "{{default_output}}"

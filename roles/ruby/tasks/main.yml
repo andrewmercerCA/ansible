@@ -1,0 +1,19 @@
+---
+
+- name: "{{ansible_distribution}}: install Ruby"
+  dnf:
+    name:
+      - ruby
+      - rubygem
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install Ruby"
+  yum:
+    name:
+      - ruby
+      - rubygem
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'

@@ -1,0 +1,19 @@
+---
+
+- name: "{{ansible_distribution}}: Download and Unpack Gradle"
+  unarchive:
+    dest: /opt
+    remote_src: yes
+    src: https://services.gradle.org/distributions/gradle-5.0-bin.zip
+
+- name: "{{ansible_distribution}}: Create symlink to binary"
+  file:
+    dest: /opt/gradle
+    src: /opt/gradle-5.0
+    state: link
+
+- name: "{{ansible_distribution}}: Create Gradle bash profile"
+  copy:
+    content: export PATH=$PATH:/opt/gradle/bin
+    dest: /etc/profile.d/gradle.sh
+    mode: 0755

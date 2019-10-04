@@ -1,0 +1,13 @@
+---
+- hosts: all
+  tasks:
+
+## BIG TODO: integrate LDAP w/ rpi
+
+  - name: Create robotics user
+
+  - name: Create andrew user
+
+  - name: Create liam user
+
+  - name: Create keaton user

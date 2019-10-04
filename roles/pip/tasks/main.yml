@@ -1,0 +1,27 @@
+---
+
+- name: "{{ansible_distribution}}: install pip from default repos"
+  dnf:
+    name: python-pip
+    state: present
+  tags:
+    - pip
+    - python
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install pip from default repos"
+  yum:
+    name: python-pip
+    state: present
+  tags:
+    - pip
+    - python
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: update pip"
+  pip:
+    name: pip
+    extra_args: --upgrade
+    state: present

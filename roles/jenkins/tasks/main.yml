@@ -1,0 +1,55 @@
+---
+
+- name: "{{ansible_distribution}}: import jenkins repo file"
+  get_url:
+    url: https://pkg.jenkins.io/redhat/jenkins.repo
+    dest: /etc/yum.repos.d/jenkins.repo
+    mode: 0644
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: import jenkins rpm key"
+  rpm_key:
+    key: https://pkg.jenkins.io/redhat/jenkins.io.key
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: install jenkins"
+  yum:
+    name: jenkins
+  when:
+    - ansible_distribution != 'Fedora'
+    - ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: install jenkins"
+  dnf:
+    name: jenkins
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: check if /tmp has the noexec flag set"
+  ignore_errors: true
+  shell: mount | grep "/tmp" | grep noexec
+  register: noexec_set
+
+- name: "{{ansible_distribution}}: configure the jenkins tmp directory"
+  replace:
+    path: /etc/sysconfig/jenkins
+    regexp: 'JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true"'
+    replace: 'JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true -Djava.io.tmpdir=$JENKINS_HOME/tmp"'
+  when:
+    - ansible_os_family == 'RedHat'
+    - noexec_set.rc == 0
+
+- name: "{{ansible_distribution}}: create the jenkins tmp directory"
+  file:
+    group: jenkins
+    owner: jenkins
+    path: /var/lib/jenkins/tmp
+    state: directory
+  when:
+    - noexec_set.rc == 0
+
+- name: "{{ansible_distribution}}: start and enable jenkins service"
+  service:
+    enabled: yes
+    name: jenkins
+    state: restarted

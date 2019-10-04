@@ -1,0 +1,7 @@
+---
+
+- name: "{{ansible_distribution}}: install wireshark"
+  dnf:
+    name:
+      - wireshark
+      - wireshark-cli

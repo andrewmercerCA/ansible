@@ -1,0 +1,40 @@
+---
+
+- name: "{{ ansible_distribution }}: things that still need to be done"
+  debug:
+    msg:
+      - 'mysql_secure_installation'
+
+- name: "{{ ansible_distribution }}: install mariadb-server"
+  yum:
+    name: mariadb-server
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ ansible_distribution }}: install mariadb-server"
+  dnf:
+    name: mariadb-server
+    state: present
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ ansible_distribution }}: start and enable services"
+  service:
+    name: mariadb
+    enabled: yes
+    state: started
+  #register: mariadb_enabled
+
+- name: "{{ansible_distribution}}: mysql_secure_installation file"
+  copy:
+    content: |
+      DELETE FROM mysql.user WHERE User='';
+      DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+      DROP DATABASE IF EXISTS test;
+      DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+      FLUSH PRIVILEGES;
+    dest: /tmp/mysql_secure_installation.sql
+
+- name: "{{ansible_distribution}}: mysql_secure_installation execute"
+  shell: 'mysql < /tmp/mysql_secure_installation.sql'

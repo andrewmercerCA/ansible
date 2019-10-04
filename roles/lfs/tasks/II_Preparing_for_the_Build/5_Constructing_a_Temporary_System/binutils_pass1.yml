@@ -1,0 +1,63 @@
+--- # http://www.linuxfromscratch.org/lfs/view/stable/chapter05/binutils-pass1.html
+## 5.4. Binutils-2.32 - Pass 1
+
+- name: "{{ansible_distribution}}: check if the binutils source directory exists"
+  stat:
+    path: "{{lfs}}/sources/binutils-2.32"
+  register: binutils_dir
+
+- name: "{{ansible_distribution}}: unpack binutils"
+  unarchive:
+    creates: /tools/share/info/binutils.info
+    dest: "{{lfs}}/sources"
+    src: "{{lfs}}/sources/binutils-2.32.tar.xz"
+
+- name: "{{ansible_distribution}}: create the build directory"
+  file:
+    dest: "{{lfs}}/sources/binutils-2.32/build"
+    state: directory
+  when: binutils_dir.stat.exists == True
+
+- name: "{{ansible_distribution}}: configure"
+  args:
+    chdir: "{{lfs}}/sources/binutils-2.32/build"
+  shell: |
+    ../configure --prefix=/tools            \
+                 --with-sysroot=$LFS        \
+                 --with-lib-path=/tools/lib \
+                 --target=$LFS_TGT          \
+                 --disable-nls              \
+                 --disable-werror
+  when: binutils_dir.stat.exists == True
+
+- name: "{{ansible_distribution}}: make"
+  make:
+    chdir: "{{lfs}}/sources/binutils-2.32/build"
+    params:
+      NUM_THREADS: 4
+  when: binutils_dir.stat.exists == True
+
+- name: "{{ansible_distribution}}: create symlink"
+  args:
+    creates: "{{item}}"
+  shell: |
+    case $(uname -m) in
+      x86_64) mkdir -v /tools/lib && ln -sv lib /tools/lib64 ;;
+    esac
+  with_items:
+    - /tools/lib
+    - /tools/lib64
+
+- name: "{{ansible_distribution}}: make install"
+  make:
+    chdir: "{{lfs}}/sources/binutils-2.32/build"
+    params:
+      NUM_THREADS: 4
+    target: install
+  when: binutils_dir.stat.exists == True
+
+- name: "{{ansible_distribution}}: cleanup"
+  file:
+    path: "{{lfs}}/sources/binutils-2.32"
+    state: absent
+  when: binutils_dir.stat.exists == True

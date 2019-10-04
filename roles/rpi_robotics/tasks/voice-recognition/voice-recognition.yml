@@ -1,0 +1,17 @@
+---
+- hosts: all
+  tasks:
+
+  - name: Install voice recognition package dependencies
+    apt:
+      name:
+        - espeak
+        - libasound2-dev
+
+  - name: Install the asound config file
+    file:
+      src: /robotics/ansible/playbooks/voice-recognition/files/asoundrc
+      dest: ~/.asoundrc
+      owner: andrew
+      group: andrew
+      mode: 0664
