@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - openjdk.yml 
+    - openjdk
   # post_tasks: 
   # tags:

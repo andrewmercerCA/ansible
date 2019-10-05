@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - kvm.yml 
+    - kvm
   # post_tasks: 
   # tags:

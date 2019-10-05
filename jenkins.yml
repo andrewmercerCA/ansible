@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - jenkins.yml 
+    - jenkins
   # post_tasks: 
   # tags:

@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - firewall_example.yml 
+    - firewall_example
   # post_tasks: 
   # tags:

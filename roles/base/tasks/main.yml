@@ -51,3 +51,21 @@
       [ "$PS1" = "\\s-\\v\\\$ " ] && PS1="[\u@\H \W]\\$ "
     dest: /etc/profile.d/ps.sh
   when: ansible_os_family == 'RedHat'
+
+- name: "{{ansible_distribution}}: install selinux packages"
+  yum:
+    name: "{{selinux_packages}}"
+  when:
+    #- ansible_selinux is defined and ansible_selinux != False and ansible_selinux.status == 'enabled'
+    - "{{ansible_selinux.status}}" == "enabled"
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install selinux packages"
+  dnf:
+    name: "{{selinux_packages}}"
+  when:
+    #- ansible_selinux is defined and ansible_selinux != False and ansible_selinux.status == 'enabled'
+    - "{{ansible_selinux.status}}" == "enabled"
+    - ansible_distribution == 'Fedora'
+

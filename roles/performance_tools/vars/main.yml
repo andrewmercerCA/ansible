@@ -1,0 +1,11 @@
+packages:
+  - iftop
+  - iotop
+  - iperf
+  - iptraf-ng
+  - smartmontools
+  - strace
+  - tcpdump
+  - wireshark
+  - wireshark-cli
+  - vnstat

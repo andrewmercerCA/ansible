@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - wordpress.yml 
+    - wordpress
   # post_tasks: 
   # tags:

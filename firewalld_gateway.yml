@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - firewalld_gateway.yml 
+    - firewalld_gateway
   # post_tasks: 
   # tags:

@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - gcp_sdk.yml 
+    - gcp_sdk
   # post_tasks: 
   # tags:

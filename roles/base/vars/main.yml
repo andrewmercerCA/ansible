@@ -3,21 +3,19 @@ base_packages:
   - bind-utils
   - curl
   - git
-  - gparted
-  - iftop
-  - iotop
-  - iperf
-  - iptraf-ng
   - libselinux-python
-  - monit
   - openssl
   - redhat-rpm-config
-  - smartmontools
   - strace
   - tcpdump
   - vim
   - vim-common
   - vim-enhanced
-  - vnstat
+
+selinux_packages:
+  - policycoreutils-python
+  - selinux-policy-devel
+  - selinux-policy-targeted
+  - setroubleshoot-server
 
 timezone: America/Toronto

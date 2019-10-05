@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - youtube_dl.yml 
+    - youtube_dl
   # post_tasks: 
   # tags:

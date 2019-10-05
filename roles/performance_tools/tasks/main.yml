@@ -1,0 +1,5 @@
+---
+
+- name: "{{ansible_distribution}}: install performance tools"
+  yum:
+    name: "{{packages}}"

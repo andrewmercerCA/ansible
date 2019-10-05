@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - global_handlers_test.yml 
+    - global_handlers_test
   # post_tasks: 
   # tags:

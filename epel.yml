@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - epel.yml 
+    - epel
   # post_tasks: 
   # tags:
