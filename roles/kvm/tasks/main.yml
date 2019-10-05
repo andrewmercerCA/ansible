@@ -5,36 +5,14 @@
 
 - name: "{{ansible_distribution}}: install kvm and related packages"
   yum:
-    name:
-      - qemu-kvm
-      - qemu-img
-      - virt-manager
-      - libvirt
-      - libvirt-python
-      - libvirt-client
-      - virt-install
-      - virt-viewer
-      - bridge-utils
-      - libguestfs-tools
-    state: present
+    name: "{{kvm_packages}}"
   when:
     - ansible_os_family == 'RedHat'
     - ansible_distribution != 'Fedora'
 
 - name: "{{ansible_distribution}}: install kvm and related packages"
   dnf:
-    name:
-      - qemu-kvm
-      - qemu-img
-      - virt-manager
-      - libvirt
-      - libvirt-python
-      - libvirt-client
-      - virt-install
-      - virt-viewer
-      - bridge-utils
-      - libguestfs-tools
-    state: present
+    name: "{{kvm_packages}}"
   when: ansible_distribution == 'Fedora'
 
 - name: "{{ansible_distribution}}: start and enable libvirtd"

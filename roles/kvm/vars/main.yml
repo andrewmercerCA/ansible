@@ -1,0 +1,12 @@
+kvm_packages:
+  - bridge-utils
+  - libguestfs-tools
+  - libvirt
+  - libvirt-bash-completion
+  - libvirt-python
+  - libvirt-client
+  - qemu-img
+  - qemu-kvm
+  - virt-install
+  - virt-manager
+  - virt-viewer
