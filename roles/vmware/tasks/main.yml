@@ -1,0 +1,10 @@
+---
+
+- name: "{{ansible_distribution}}: disable ctrl+alt+delete"
+  file:
+    dest: /etc/systemd/system/ctrl-alt-del.target
+    src: /dev/null
+    state: link
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_virtualization_type == 'VMware'

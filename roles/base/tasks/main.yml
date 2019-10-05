@@ -1,0 +1,53 @@
+---
+
+- name: "{{ansible_distribution}}: install epel-release"
+  yum:
+    name: epel-release
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install epel-release"
+  dnf:
+    name: epel-release
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ ansible_distribution }}: install base packages"
+  yum:
+    name: "{{base_packages}}"
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ ansible_distribution }}: install base packages"
+  dnf:
+    name: "{{base_packages}}"
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install dnf-plugins-core"
+  dnf:
+    name: 
+      - dnf-plugins-core
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: Update all installed packages"
+  yum: name=* state=latest
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: Update all installed packages"
+  dnf: name=* state=latest
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: Set the timezone"
+  timezone:
+    name: "{{timezone}}"
+
+- name: "{{ansible_distribution}}: change bash PS1"
+  copy:
+    content: |
+      #!/bin/bash
+      [ "$PS1" = "\\s-\\v\\\$ " ] && PS1="[\u@\H \W]\\$ "
+    dest: /etc/profile.d/ps.sh
+  when: ansible_os_family == 'RedHat'

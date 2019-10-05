@@ -2,6 +2,6 @@
 - hosts: '{{target}}' 
   # pre_tasks: 
   roles: 
-    - apache
+    - aws_cli
   # post_tasks: 
   # tags:

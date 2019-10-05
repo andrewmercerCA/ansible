@@ -1,0 +1,56 @@
+---
+
+- name: "{{ansible_distribution}}: uninstall awx"
+  include: uninstall.yml
+  when: uninstall == "True"
+
+- name: "{{ansible_distribution}}: install pre-pre-dependencies (epel)"
+  yum:
+    name: epel-release
+    state: latest
+  when:
+    - ansible_distribution != 'Fedora'
+    - ansible_os_family == 'RedHat'
+    - uninstall != 'True'
+
+- name: "{{ansible_distribution}}: install pre-dependencies"
+  dnf:
+    name:
+      - git
+      - python-pip
+    state: latest
+  when:
+    - ansible_distribution == 'Fedora'
+    - uninstall != 'True'
+
+- name: "{{ansible_distribution}}: install pre-dependencies"
+  yum:
+    name:
+      - git
+      - python-pip
+    state: latest
+  when:
+    - ansible_distribution != 'Fedora'
+    - ansible_os_family == 'RedHat'
+    - uninstall != 'True'
+
+- name: "{{ansible_distribution}}: install ansible"
+  pip:
+    name:
+     - ansible
+     - docker-py
+    state: latest
+  when: uninstall != 'True'
+
+- name: "{{ansible_distribution}}: clone the awx repo"
+  git:
+    clone: yes
+    dest: /tmp
+    repo: https://github.com/ansible/awx
+  when: uninstall != 'True'
+
+- name: "{{ansible_distribution}}: run the installer"
+  shell: ansible-playbook -i inventory install.xml
+  args:
+    chdir: /tmp/awx
+  when: uninstall != 'True'

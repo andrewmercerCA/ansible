@@ -1,0 +1,56 @@
+---
+
+- name: "{{ansible_distribution}}: install epel-release"
+  yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install package dependencies"
+  yum:
+    name: 
+      - binutils
+      - gcc
+      - make
+      - patch
+      - libgomp
+      - glibc-headers
+      - glibc-devel
+      - kernel-headers
+      - kernel-devel
+      - dkms
+    state: installed
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install package dependencies"
+  dnf:
+    name:
+      - binutils
+      - gcc
+      - make
+      - patch
+      - libgomp
+      - glibc-headers
+      - glibc-devel
+      - kernel-headers
+      - kernel-devel
+      - dkms
+    state: installed
+  when: ansible_distribution == 'Fedora'
+
+- name: "{{ansible_distribution}}: install virtualbox"
+  yum:
+    name: VirtualBox-5.2
+    state: installed
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+
+- name: "{{ansible_distribution}}: install virtualbox"
+  dnf:
+    name: VirtualBox-5.2
+    state: installed
+  when: ansible_distribution == 'Fedora'

@@ -1,0 +1,22 @@
+---
+
+- name: "{{ansible_distribution}}: uninstall awx?"
+  debug:
+    msg: uninstall is set to True
+
+- name: "{{ansible_distribution}}: stop docker containers"
+  docker:
+    name:
+      - awx_task
+      - awx_web
+      - memcached
+      - rabbitmq
+      - postgres
+    state: absent
+  when: uninstall == "True"
+
+- name: "{{ansible_distribution}}: delete repo"
+  file:
+    path: /tmp/awx
+    state: absent
+  when: uninstall == "True"

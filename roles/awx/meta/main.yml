@@ -1,0 +1,6 @@
+---
+dependencies:
+  - { role: development_tools }
+  - { role: docker }
+  - { role: nodejs}
+  - { role: pip }

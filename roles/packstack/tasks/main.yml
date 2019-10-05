@@ -1,0 +1,47 @@
+---
+
+- name: "{{ansible_distribution}}: uninstall packstack"
+  include: uninstall.yml
+  when: uninstall == "True"
+
+- name: "{{ansible_distribution}}: install dependencies"
+  yum:
+    name:
+      - python-zmq
+    state: installed
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+    - uninstall != 'True'
+
+- name: "{{ansible_distribution}}: install dependencies"
+  dnf:
+    name:
+      - python-zmq
+    state: installed
+  when:
+  - ansible_distribution == 'Fedora'
+  - uninstall != 'True'
+
+- name: "{{ansible_distribution}}: packstack release"
+  yum:
+    name: centos-release-openstack-rocky
+    state: installed
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+    - uninstall != 'True'
+
+- name: "{{ansible_distribution}}: install packstack"
+  yum:
+    name: openstack-packstack
+    state: installed
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution != 'Fedora'
+    - uninstall != 'True'
+
+- name: "{{ansible_distribution}}: run the standalone installer"
+  shell: packstack --allinone
+  when:
+    - uninstall != 'True'

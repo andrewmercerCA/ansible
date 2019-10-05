@@ -1,0 +1,23 @@
+base_packages:
+  - bash-completion
+  - bind-utils
+  - curl
+  - git
+  - gparted
+  - iftop
+  - iotop
+  - iperf
+  - iptraf-ng
+  - libselinux-python
+  - monit
+  - openssl
+  - redhat-rpm-config
+  - smartmontools
+  - strace
+  - tcpdump
+  - vim
+  - vim-common
+  - vim-enhanced
+  - vnstat
+
+timezone: America/Toronto
