@@ -1,0 +1,17 @@
+---
+
+- hosts: ansible_nodes
+  become: yes
+
+  tasks:
+    - name: "{{ansible_distribution}} - {{ansible_hostname}}: retrieve index.html"
+      block:
+        - get_url:
+            url: "http://{{ansible_default_ipv4.address}}/index.hml"
+            dest: /tmp/{{item}}
+          with_items:
+            - ansible_nodes
+      rescue:
+        - debug: msg="The file doesn't exist"
+      always:
+        - debug: msg="Play done!"

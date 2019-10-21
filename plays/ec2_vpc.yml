@@ -1,0 +1,158 @@
+---
+
+# Requires the AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY or EC2_ACCESS_KEY environment variable to be set
+## ~/.bash_profile: export AWS_ACCESS_KEY_ID=$( cat ~/.aws/credentials | grep aws_access_key_id | awk '{ print $3 }' )
+# Requires the AWS_SECRET_ACCESS_KEY, AWS_SECRET_KEY, or EC2_SECRET_KEY environment variable to be set
+## ~/.bash_profile: export AWS_SECRET_ACCESS_KEY=$( cat ~/.aws/credentials | grep aws_secret_access_key | awk '{ print $3 }' )
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars:
+    include_vars: ec2_vpc_secrets.yml
+
+  tasks:
+
+  - name: creating the vpc
+    ec2_vpc_net:
+      name: ansible_vpc
+      cidr_block: 10.0.0.0/16
+      region: us-east-1
+      tags:
+        module: ansible_ec2 
+      dns_hostnames: yes
+      dns_support: yes
+      state: present
+    register: ansible_ec2_vpc_net
+
+  - name: saving vpc_id fact
+    set_fact:
+      vpc_id: "{{ ansible_ec2_vpc_net.vpc.id }}"
+
+  # TODO https://docs.ansible.com/ansible/latest/modules/ec2_vpc_net_facts_module.html
+  #- name: "{{ ansible_distribution }}: another way to get the vpc_id fact"
+  #  ec2_vpc_net_facts:
+  #    tag:Name": ansible_vpc
+  
+  - name: creating subnet 1
+    ec2_vpc_subnet:
+      cidr: 10.0.1.0/24
+      resource_tags:
+        Name: Subnet1
+      state: present
+      vpc_id: "{{ vpc_id }}"
+    register: subnet1
+
+  - name: creating subnet 2
+    ec2_vpc_subnet:
+      cidr: 10.0.2.0/24
+      resource_tags:
+        Name: Subnet2
+      state: present
+      vpc_id: "{{ vpc_id }}"
+    register: subnet2
+
+  - name: creating subnet 3
+    ec2_vpc_subnet:
+      cidr: 10.0.3.0/24
+      resource_tags:
+        Name: Subnet3
+      state: present
+      vpc_id: "{{ vpc_id }}"
+    register: subnet3
+
+  - name: creating subnet 4
+    ec2_vpc_subnet:
+      cidr: 10.0.4.0/24
+      resource_tags:
+        Name: Subnet4
+      state: present
+      vpc_id: "{{ vpc_id }}"
+    register: subnet4
+
+  - name: creating the internet gateway
+    ec2_vpc_igw:
+      state: present
+      vpc_id: "{{ vpc_id }}"
+    register: igw
+
+  - name: output the Igw.Id
+    debug:
+      msg: "Internet Gateway Id is {{ igw.InternetGatewayId }}"
+
+  - name: creating the elastic ip
+    ec2_eip:
+      state: present
+    register: eip
+
+  - name: output the IP
+    debug:
+      msg: "Allocated IP is {{ eip.public_ip }}"
+
+  - name: creating the nat gateway
+    ec2_vpc_nat_gateway:
+      eip_id: "{{ eip }}"
+      subnet_id: "{{ subnet1 }}"
+      state: present
+    register: nat_gateway
+
+  - name: output the nat gateway id
+    debug:
+      msg: "NAT Gateway Id is {{ nat_gateway.NatGatewayId }}"
+
+  #- name: creating NAT route table
+  #  ec2_vpc_route_table:
+  #    vpc_id: "{{ vpc_id }}"
+
+  - name: assign the default route a destination of the internet gateway
+    ec2_vpc_route_table:
+      region: us-east-1
+      routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ igw }}"
+      subnets:
+        - "{{ subnet1 }}"
+        - "{{ subnet2 }}"
+        - "{{ subnet3 }}"
+        - "{{ subnet4 }}"
+      vpc_id: "{{ vpc_id }}"
+    register: public_route_table
+
+  - name: output the public route table id
+    debug:
+      msg: "{{ public_route_table.RouteTableId }}"
+
+  - name: create ssh security group for bastion host
+    ec2_group:
+      description: security group for ssh port 22 ingress
+      name: bastion-ssh
+      region: us-east-1
+      rules:
+        - proto: tcp
+          ports:
+            - 22
+          cidr_ip: 0.0.0.0/0
+          rule_desc: security group for ssh port 22 ingress
+      vpc_id: "{{ vpc_id }}"
+    register: sg_ssh
+
+  - name: output sg_ssh
+    debug:
+      msg: "{{ sg_ssh }}"
+
+  - name: create ssh bastion host instance
+    ec2:
+      assign_public_ip: yes
+      count: 1
+      groups: "{{ sg_ssh }}"
+      key_name: "{{ key_name }}"
+      instance_type: t2.micro
+      image: ami-0b69ea66ff7391e80
+      vpc_subnet_id: "{{ vpc_id }}"
+      wait: yes
+    register: bastion_host
+
+  - name: output bastion host public dns and ip
+    debug:
+      msg: "{{ bastion_host }}"

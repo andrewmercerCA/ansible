@@ -1,0 +1,43 @@
+---
+
+# specify -i ~/ansible/playbooks/hosts
+# also include temporary vars like public ips, private ips, temporary passwords, etc
+# in ~/ansible/playbooks/linuxacademy_vars.yml
+
+- hosts: all
+
+  tasks:
+  - name: Copy personal public ssh key to nodes
+    shell: ssh-copy-id "{{item}}"
+    with_inventory_hostnames:
+      - all
+
+- hosts: all
+
+  tasks: 
+  - name: Install Ansible
+    yum:
+      name: ansible
+    when: ansible_os_family == 'RedHat'
+
+  - name: Install Ansible
+    apt:
+      name: ansible
+    when: ansible_os_family == 'Debian'
+
+  #- name: Configure sudoers
+  #- name: Configure hosts
+
+- hosts: ansible_control # specify -i ~/ansible/playbooks/hosts
+  tasks:
+    - name: Create ssh key
+      become: true
+      become_user: "{{user}}"
+      shell: ssh-keygen -t rsa -b 4096 -C "Ansible Control Node" -q -N ""
+
+    - name: Copy ssh key to nodes
+      become: true
+      become_user: "{{user}}"
+      shell: ssh-copy-i "{{item}}"
+      with_inventory_hostnames:
+        - ansible_nodes

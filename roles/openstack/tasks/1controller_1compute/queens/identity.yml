@@ -1,0 +1,81 @@
+--- # https://docs.openstack.org/keystone/queens/install/
+# Interesting note:
+# https://docs.openstack.org/keystone/queens/getting-started/architecture.html
+# "Keystone is an HTTP front-end to several services. Like other OpenStack applications, this is done using python WSGI interfaces and applications are configured together using Paste."
+# https://pypi.org/project/Paste
+# Paste is in maintenance mode and recently moved from bitbucket to github. Patches are accepted to keep it on life support, but for the most part, please consider using other options.
+
+- name: "{{ ansible_distribution }}: create keystone database"
+  mysql_db:
+    login_user: mysql
+    login_password: "{{ mysql_password }}"
+    name: keystone
+    state: present
+    
+- name: "{{ ansible_distribution }}: create keystone user"
+  mysql_user:
+    login_user: mysql
+    login_password: "{{ mysql_password }}"
+    name: keystone
+    password: "{{ keystone_dbpass }}"
+    priv: 'keystone.*:ALL'
+    state: present
+
+- name: "{{ ansible_distribution }}: install httpd mod_wsgi"
+  yum:
+    name:
+      - httpd
+      - mod_wsgi
+
+- name: "{{ ansible_distribution }}: configure keystone"
+  lineinfile:
+    path: /etc/keystone/keystone.conf
+    line:
+[database]
+# ...
+connection = mysql+pymysql://keystone:{{ keystone_dbpass }}@controller/keystone
+
+[token]
+# ...
+provider = fernet
+
+- name: "{{ ansible_distribution }}: populate the keystone database"
+su -s /bin/sh -c "keystone-manage db_sync" keystone
+
+- name: "{{ ansible_distribution }}: initialize fernet repositories:"
+# keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+# keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+
+- name: "{{ ansible_distribution }}: bootstrap the identity service"
+# keystone-manage bootstrap --bootstrap-password ADMIN_PASS \
+  --bootstrap-admin-url http://controller:5000/v3/ \
+  --bootstrap-internal-url http://controller:5000/v3/ \
+  --bootstrap-public-url http://controller:5000/v3/ \
+  --bootstrap-region-id RegionOne
+
+- name: "{{ ansible_distribution }}: configure apache"
+  ServerName: controller0
+
+- name: "{{ ansible_distribution }}: create wsgi-keystone.conf"
+  file:
+    src: /usr/share/keystone/wsgi-keystone.conf
+    dest: /etc/httpd/conf.d/wsgi-keystone.conf 
+    state: link
+
+- name: "{{ ansible_distribution }}: start and enable httpd"
+  service:
+    enabled: yes
+    name: httpd
+    state: started
+
+- name: "{{ ansible_distribution }}: export variables"
+$ export OS_USERNAME=admin
+$ export OS_PASSWORD=ADMIN_PASS
+$ export OS_PROJECT_NAME=admin
+$ export OS_USER_DOMAIN_NAME=Default
+$ export OS_PROJECT_DOMAIN_NAME=Default
+$ export OS_AUTH_URL=http://controller:5000/v3
+$ export OS_IDENTITY_API_VERSION=3
+
+
+- create domain, project, service, etc

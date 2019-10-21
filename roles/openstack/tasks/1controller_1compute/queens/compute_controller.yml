@@ -1,0 +1,60 @@
+--- # https://docs.openstack.org/nova/queens/install/
+# https://docs.openstack.org/nova/queens/install/controller-install-rdo.html
+
+- name: "{{ ansible_distribution }}: create nova database"
+  mysql_db:
+    login_user: mysql
+    login_password: "{{ mysql_password }}"
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - nova_api
+    - nova
+    - nova_cell0
+    
+- name: "{{ ansible_distribution }}: create nova user"
+  mysql_user:
+    login_user: mysql
+    login_password: "{{ mysql_password }}"
+    name: "{{ item }}"
+    password: "{{ nova_dbpass }}"
+    priv: 'nova.*:ALL'
+    state: present
+  with_items:
+    - nova_api
+    - nova
+    - nova_cell0
+
+- name: "{{ ansible_distribution }}: openstack nova roles and sheeit"
+
+- name: "{{ ansible_distribution }}: nova packages"
+  yum:
+    name:
+      - openstack-nova-api
+      - openstack-nova-conductor
+      - openstack-nova-console
+      - openstack-nova-novncproxy
+      - openstack-nova-scheduler
+      - openstack-nova-placement-api
+
+- name: "{{ ansible_distribution }}: nova configuration"
+
+- name: "{{ ansible_distribution }}: populate databases"
+  shell: "{{ item }}"
+  with_items:
+    - su -s /bin/sh -c "nova-manage api_db sync" nova
+    - su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
+    - su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova
+    - su -s /bin/sh -c "nova-manage db sync" nova
+
+- name: "{{ ansible_distribution }}: nova services"
+  service:
+    enabled: yes
+    name: "{{ item }}"
+    state: started
+  with_items:
+    - openstack-nova-api.service
+    - openstack-nova-consoleauth.service
+    - openstack-nova-scheduler.service
+    - openstack-nova-conductor.service
+    - openstack-nova-novncproxy.service

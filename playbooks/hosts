@@ -1,0 +1,6 @@
+[ansible_control]
+ansible_control
+
+[ansible_nodes]
+ansible_node1
+ansible_node2

@@ -1,0 +1,3 @@
+--- # https://docs.openstack.org/newton/install-guide-rdo
+
+- include_vars: vars.yml
