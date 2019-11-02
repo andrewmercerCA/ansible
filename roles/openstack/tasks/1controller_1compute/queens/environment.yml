@@ -58,12 +58,6 @@
         name: mariadb
         state: started
 
-    - name: set the root password
-      mysql_user:
-        user: root
-        password: "{{ the_password }}"
-        host: localhost
-
     - name: setup ~/.my.cnf
       copy:
         content: |
@@ -72,6 +66,12 @@
           password = "{{ the_password }}"
         dest: /root/.my.cnf
         mode: 0400
+
+    - name: set the root password
+      mysql_user:
+        user: root
+        password: "{{ the_password }}"
+        host: localhost
 
     - name: remove anonymous user ansible_fqdn
       mysql_user:
