@@ -3,108 +3,126 @@
 ## NTP
 ### https://docs.openstack.org/install-guide/environment-ntp.html
 
+- name: chrony"
+  block:
+    - name: install chrony
+      yum:
+        name: chrony
+
+    - name: start and enable chrony
+      service:
+        enable: yes
+        name: chronyd
+        state: started
+  when:
+    - ( 'controller' in ansible_hostname ) or ( 'compute' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'
+
 ## OpenStack packages
 ### https://docs.openstack.org/install-guide/environment-packages.html
-- name: "{{ ansible_distribution }}: install openstack repo"
-  yum:
-    name:
-      - centos-release-openstack-{{ openstack_version }}
-      - python-openstackclient
-      - openstack-selinux
-
-## MariaDB
-### https://docs.openstack.org/install-guide/environment-sql-database.html
-- name: "{{ ansible_distribution }}: install mariadb-server"
-  yum:
-    name: mariadb-server
-
-- name: "{{ ansible_distribution }}: start and enable mariadb service"
-  service:
-    enabled: yes
-    name: rabbitmq-server
-    state: started
-
-- name: "{{ ansible_distribution }}: create openstack.cnf"
-  copy:
-    content: |
-      [mysqld]
-      bind-address = "{{ ansible_default_ipv4.address }}"
-
-      default-storage-engine = innodb
-      innodb_file_per_table = on
-      max_connections = 4096
-      collation-server = utf8_general_ci
-      character-set-server = utf8
-    dest: /etc/my.cnf.d/openstack.cnf
-
-## RabbitMQ
-### https://docs.openstack.org/install-guide/environment-messaging.html
-- name: "{{ ansible_distribution }}: install rabbitmq"
-  yum:
-    name: rabbitmq-server
-
-- name: "{{ ansible_distribution }}: start and enable rabbitmq service"
-  service:
-    enabled: yes
-    name: rabbitmq-server
-    state: started
-
-- name: "{{ ansible_distribution }}: create the rabbitmq openstack user"
-  rabbitmq_user:
-    user: openstack
-    password: "{{ RABBIT_PASS }}"
-    permissions:
-      - vhost: /
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
-    state: present
-
-## Memcached
-### https://docs.openstack.org/install-guide/environment-memcached.html
-- name: "{{ ansible_distribution }}: install memcached"
-  yum:
-    name:
-      - memcached
-      - python-memcached
-
-- name: "{{ ansible_distribution }}: configure memcached"
-  lineinfile:
-    path: /etc/sysconfig/memcached
-    regexp:'^OPTIONS='
-    line: 'OPTIONS="-l 127.0.0.1,::1,controller0"'
-
-- name: "{{ ansible_distribution }}: start and enable memcached"
-  service:
-    enabled: yes
-    name: memcached
-    state: started
-
-## etcd
-### https://docs.openstack.org/install-guide/environment-etcd-rdo.html
-- name: "{{ ansible_distribution }}: install etcd"
-  yum:
-    name: etcd
-
-- name: "{{ ansible_distribution }}: configure etcd"
-  lineinfile:
-    path: /etc/etcd/etcd.conf
-    regexp: "{{ item }}"
-  with_items:
-  #[Member]
-ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
-ETCD_LISTEN_PEER_URLS="http://10.0.0.11:2380"
-ETCD_LISTEN_CLIENT_URLS="http://10.0.0.11:2379"
-ETCD_NAME="controller"
-#[Clustering]
-ETCD_INITIAL_ADVERTISE_PEER_URLS="http://10.0.0.11:2380"
-ETCD_ADVERTISE_CLIENT_URLS="http://10.0.0.11:2379"
-ETCD_INITIAL_CLUSTER="controller=http://10.0.0.11:2380"
-ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
-ETCD_INITIAL_CLUSTER_STATE="new"
-
-- name: "{{ ansible_distribution }}: start and enable etcd"
-  service:
-    enabled: yes
-    name: etcd
-    state: started
+#### Run on both controller and compute nodes
+#
+#- name: "{{ ansible_distribution }}: install openstack repo"
+#  yum:
+#    name:
+#      - centos-release-openstack-{{ openstack_version }}
+#      - python-openstackclient
+#      - openstack-selinux
+#
+### MariaDB
+#### https://docs.openstack.org/install-guide/environment-sql-database.html
+#- name: "{{ ansible_distribution }}: install mariadb-server"
+#  yum:
+#    name: mariadb-server
+#  when: ( 'controller' in ansible_hostname )
+#
+#- name: "{{ ansible_distribution }}: start and enable mariadb service"
+#  service:
+#    enabled: yes
+#    name: rabbitmq-server
+#    state: started
+#
+#- name: "{{ ansible_distribution }}: create openstack.cnf"
+#  copy:
+#    content: |
+#      [mysqld]
+#      bind-address = "{{ ansible_default_ipv4.address }}"
+#
+#      default-storage-engine = innodb
+#      innodb_file_per_table = on
+#      max_connections = 4096
+#      collation-server = utf8_general_ci
+#      character-set-server = utf8
+#    dest: /etc/my.cnf.d/openstack.cnf
+#
+### RabbitMQ
+#### https://docs.openstack.org/install-guide/environment-messaging.html
+#- name: "{{ ansible_distribution }}: install rabbitmq"
+#  yum:
+#    name: rabbitmq-server
+#
+#- name: "{{ ansible_distribution }}: start and enable rabbitmq service"
+#  service:
+#    enabled: yes
+#    name: rabbitmq-server
+#    state: started
+#
+#- name: "{{ ansible_distribution }}: create the rabbitmq openstack user"
+#  rabbitmq_user:
+#    user: openstack
+#    password: "{{ RABBIT_PASS }}"
+#    permissions:
+#      - vhost: /
+#        configure_priv: .*
+#        read_priv: .*
+#        write_priv: .*
+#    state: present
+#
+### Memcached
+#### https://docs.openstack.org/install-guide/environment-memcached.html
+#- name: "{{ ansible_distribution }}: install memcached"
+#  yum:
+#    name:
+#      - memcached
+#      - python-memcached
+#
+#- name: "{{ ansible_distribution }}: configure memcached"
+#  lineinfile:
+#    path: /etc/sysconfig/memcached
+#    regexp:'^OPTIONS='
+#    line: 'OPTIONS="-l 127.0.0.1,::1,controller0"'
+#
+#- name: "{{ ansible_distribution }}: start and enable memcached"
+#  service:
+#    enabled: yes
+#    name: memcached
+#    state: started
+#
+### etcd
+#### https://docs.openstack.org/install-guide/environment-etcd-rdo.html
+#- name: "{{ ansible_distribution }}: install etcd"
+#  yum:
+#    name: etcd
+#
+#- name: "{{ ansible_distribution }}: configure etcd"
+#  lineinfile:
+#    path: /etc/etcd/etcd.conf
+#    regexp: "{{ item }}"
+#  with_items:
+#  #[Member]
+#ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+#ETCD_LISTEN_PEER_URLS="http://10.0.0.11:2380"
+#ETCD_LISTEN_CLIENT_URLS="http://10.0.0.11:2379"
+#ETCD_NAME="controller"
+##[Clustering]
+#ETCD_INITIAL_ADVERTISE_PEER_URLS="http://10.0.0.11:2380"
+#ETCD_ADVERTISE_CLIENT_URLS="http://10.0.0.11:2379"
+#ETCD_INITIAL_CLUSTER="controller=http://10.0.0.11:2380"
+#ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
+#ETCD_INITIAL_CLUSTER_STATE="new"
+#
+#- name: "{{ ansible_distribution }}: start and enable etcd"
+#  service:
+#    enabled: yes
+#    name: etcd
+#    state: started
