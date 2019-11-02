@@ -3,6 +3,8 @@
 ## NTP
 ### https://docs.openstack.org/install-guide/environment-ntp.html
 
+# test this works by running this first:
+# ansible -b -i hosts openstack -m yum -a 'name=chrony state=absent'
 - name: chrony"
   block:
     - name: install chrony
@@ -20,14 +22,16 @@
 
 ## OpenStack packages
 ### https://docs.openstack.org/install-guide/environment-packages.html
-#### Run on both controller and compute nodes
-#
-#- name: "{{ ansible_distribution }}: install openstack repo"
-#  yum:
-#    name:
-#      - centos-release-openstack-{{ openstack_version }}
-#      - python-openstackclient
-#      - openstack-selinux
+
+- name: install openstack repo
+  yum:
+    name:
+      - centos-release-openstack-{{ openstack_version }}
+      - python-openstackclient
+      - openstack-selinux
+  when:
+    - ( 'controller' in ansible_hostname ) or ( 'compute' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'
 #
 ### MariaDB
 #### https://docs.openstack.org/install-guide/environment-sql-database.html

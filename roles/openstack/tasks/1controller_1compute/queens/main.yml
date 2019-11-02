@@ -1,5 +1,7 @@
 --- # https://docs.openstack.org/newton/install-guide-rdo
 
+# ansible-playbook -b -i hosts main.yml 
+
 - hosts: all
   tasks:
     - include_vars: vars.yml
