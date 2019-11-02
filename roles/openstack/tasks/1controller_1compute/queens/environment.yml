@@ -23,7 +23,7 @@
 ## OpenStack packages
 ### https://docs.openstack.org/install-guide/environment-packages.html
 
-- name: install openstack repo
+- name: openstack repo
   block:
     - name: install openstack repo package
       yum:
@@ -38,33 +38,88 @@
   when:
     - ( 'controller' in ansible_hostname ) or ( 'compute' in ansible_hostname )
     - ansible_facts['distribution'] == 'CentOS'
-#
+
 ### MariaDB
 #### https://docs.openstack.org/install-guide/environment-sql-database.html
-#- name: "{{ ansible_distribution }}: install mariadb-server"
-#  yum:
-#    name: mariadb-server
-#  when: ( 'controller' in ansible_hostname )
-#
-#- name: "{{ ansible_distribution }}: start and enable mariadb service"
-#  service:
-#    enabled: yes
-#    name: rabbitmq-server
-#    state: started
-#
-#- name: "{{ ansible_distribution }}: create openstack.cnf"
-#  copy:
-#    content: |
-#      [mysqld]
-#      bind-address = "{{ ansible_default_ipv4.address }}"
-#
-#      default-storage-engine = innodb
-#      innodb_file_per_table = on
-#      max_connections = 4096
-#      collation-server = utf8_general_ci
-#      character-set-server = utf8
-#    dest: /etc/my.cnf.d/openstack.cnf
-#
+
+- name: mariadb-server
+  block:
+    - name: install mariadb-server
+      yum:
+        name:
+          - mariadb
+          - mariadb-server
+          - python2-PyMySQL
+          - MySQL-Python
+
+    - name: start and enable mariadb service
+      service:
+        enabled: yes
+        name: mariadb
+        state: started
+
+    - name: set the root password
+      mysql_user:
+        user: root
+        password: "{{ the_password }}"
+        host: localhost
+
+    - name: remove anonymous user ansible_fqdn
+      mysql_user:
+        user: ""
+        host: "{{ ansible_fqdn }}"
+        state: absent
+
+    - name: remove anonymous user
+      mysql_user:
+        user: ""
+        state: absent
+
+    - name: Secures the MySQL root user for IPV6 localhost (::1)
+      mysql_user:
+        user: root
+        password: "{{ the_password }}"
+        host: "::1"
+
+    - name: Secures the MySQL root user for IPV4 localhost (127.0.0.1)
+      mysql_user:
+        user: root
+        password: "{{ the_password }}"
+        host: 127.0.0.1
+
+    - name: Secures the MySQL root user for localhost domain (localhost)
+      mysql_user:
+        user: root
+        password: "{{ the_password }}"
+        host: localhost
+
+    - name: Secures the MySQL root user for server_hostname domain
+      mysql_user:
+        user: root
+        password: "{{ the_password }}"
+        host: "{{ ansible_fqdn }}"
+
+    - name: remove the test database
+      mysql_db:
+        db: test
+        state: absent
+
+    - name: create openstack.cnf
+      copy:
+        content: |
+          [mysqld]
+          bind-address = "{{ ansible_default_ipv4.address }}"
+
+          default-storage-engine = innodb
+          innodb_file_per_table = on
+          max_connections = 4096
+          collation-server = utf8_general_ci
+          character-set-server = utf8
+        dest: /etc/my.cnf.d/openstack.cnf
+  when:
+    - ( 'controller' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'
+
 ### RabbitMQ
 #### https://docs.openstack.org/install-guide/environment-messaging.html
 #- name: "{{ ansible_distribution }}: install rabbitmq"
