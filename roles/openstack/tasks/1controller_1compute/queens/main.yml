@@ -1,4 +1,4 @@
---- # https://docs.openstack.org/newton/install-guide-rdo
+--- # https://docs.openstack.org/install-guide/
 
 # ansible-playbook -b -i hosts main.yml 
 

@@ -1,4 +1,4 @@
----
+--- # https://docs.openstack.org/install-guide/environment.html
 
 ## NTP
 ### https://docs.openstack.org/install-guide/environment-ntp.html
@@ -161,24 +161,26 @@
 
 ### Memcached
 #### https://docs.openstack.org/install-guide/environment-memcached.html
-#- name: "{{ ansible_distribution }}: install memcached"
-#  yum:
-#    name:
-#      - memcached
-#      - python-memcached
-#
-#- name: "{{ ansible_distribution }}: configure memcached"
-#  lineinfile:
-#    path: /etc/sysconfig/memcached
-#    regexp:'^OPTIONS='
-#    line: 'OPTIONS="-l 127.0.0.1,::1,controller0"'
-#
-#- name: "{{ ansible_distribution }}: start and enable memcached"
-#  service:
-#    enabled: yes
-#    name: memcached
-#    state: started
-#
+- name: memcached
+  block:
+    - name: install memcached
+      yum:
+        name:
+          - memcached
+          - python-memcached
+ 
+    #- name: configure memcached
+    #  lineinfile:
+    #    path: /etc/sysconfig/memcached
+    #    regexp:'^OPTIONS='
+    #    line: 'OPTIONS="-l 127.0.0.1,::1,controller0"'
+
+    - name: start and enable memcached
+      service:
+        enabled: yes
+        name: memcached
+        state: started
+
 ### etcd
 #### https://docs.openstack.org/install-guide/environment-etcd-rdo.html
 #- name: "{{ ansible_distribution }}: install etcd"
