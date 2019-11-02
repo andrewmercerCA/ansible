@@ -190,8 +190,9 @@
  
 - name: etcd
   block:
-    yum:
-      name: etcd
+    - name: install etcd
+      yum:
+        name: etcd
 
 #- name: "{{ ansible_distribution }}: configure etcd"
 #  lineinfile:
