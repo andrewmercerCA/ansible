@@ -133,27 +133,32 @@
 
 ### RabbitMQ
 #### https://docs.openstack.org/install-guide/environment-messaging.html
-#- name: "{{ ansible_distribution }}: install rabbitmq"
-#  yum:
-#    name: rabbitmq-server
-#
-#- name: "{{ ansible_distribution }}: start and enable rabbitmq service"
-#  service:
-#    enabled: yes
-#    name: rabbitmq-server
-#    state: started
-#
-#- name: "{{ ansible_distribution }}: create the rabbitmq openstack user"
-#  rabbitmq_user:
-#    user: openstack
-#    password: "{{ RABBIT_PASS }}"
-#    permissions:
-#      - vhost: /
-#        configure_priv: .*
-#        read_priv: .*
-#        write_priv: .*
-#    state: present
-#
+
+- name: install rabbitmq
+  block:
+    - name: install rabbitmq-server
+      yum:
+        name: rabbitmq-server
+
+    - name: start and enable rabbitmq service
+      service:
+        enabled: yes
+        name: rabbitmq-server
+        state: started
+
+    - name: create the rabbitmq openstack user
+      rabbitmq_user:
+        user: openstack
+        password: "{{ the_password }}"
+        permissions:
+          - vhost: /
+            configure_priv: .*
+            read_priv: .*
+            write_priv: .*
+        state: present
+  when:
+    - ( 'controller' in ansible_hostname )
+
 ### Memcached
 #### https://docs.openstack.org/install-guide/environment-memcached.html
 #- name: "{{ ansible_distribution }}: install memcached"
