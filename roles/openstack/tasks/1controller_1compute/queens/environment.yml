@@ -24,11 +24,17 @@
 ### https://docs.openstack.org/install-guide/environment-packages.html
 
 - name: install openstack repo
-  yum:
-    name:
-      - centos-release-openstack-{{ openstack_version }}
-      - python-openstackclient
-      - openstack-selinux
+  block:
+    - name: install openstack repo package
+      yum:
+        name:
+          - centos-release-openstack-{{ openstack_version }}
+
+    - name: install other openstack packages
+      yum:
+        name:
+          - python-openstackclient
+          - openstack-selinux
   when:
     - ( 'controller' in ansible_hostname ) or ( 'compute' in ansible_hostname )
     - ansible_facts['distribution'] == 'CentOS'
