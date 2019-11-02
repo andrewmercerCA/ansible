@@ -158,6 +158,7 @@
         state: present
   when:
     - ( 'controller' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'
 
 ### Memcached
 #### https://docs.openstack.org/install-guide/environment-memcached.html
@@ -180,13 +181,18 @@
         enabled: yes
         name: memcached
         state: started
+  when:
+    - ( 'controller' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'
 
 ### etcd
 #### https://docs.openstack.org/install-guide/environment-etcd-rdo.html
-#- name: "{{ ansible_distribution }}: install etcd"
-#  yum:
-#    name: etcd
-#
+ 
+- name: etcd
+  block:
+    yum:
+      name: etcd
+
 #- name: "{{ ansible_distribution }}: configure etcd"
 #  lineinfile:
 #    path: /etc/etcd/etcd.conf
@@ -209,3 +215,6 @@
 #    enabled: yes
 #    name: etcd
 #    state: started
+  when:
+    - ( 'controller' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'

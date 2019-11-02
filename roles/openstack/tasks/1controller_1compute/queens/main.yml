@@ -7,3 +7,5 @@
     - include_vars: vars.yml
     - include: environment.yml
     #- include: environment/main.yml
+  handlers:
+    - include: handlers.yml
