@@ -11,7 +11,7 @@
 
     - name: start and enable chrony
       service:
-        enable: yes
+        enabled: yes
         name: chronyd
         state: started
   when:
