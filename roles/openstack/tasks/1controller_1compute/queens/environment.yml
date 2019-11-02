@@ -169,11 +169,11 @@
           - memcached
           - python-memcached
  
-    #- name: configure memcached
-    #  lineinfile:
-    #    path: /etc/sysconfig/memcached
-    #    regexp:'^OPTIONS='
-    #    line: 'OPTIONS="-l 127.0.0.1,::1,controller0"'
+    - name: configure memcached
+      lineinfile:
+        path: /etc/sysconfig/memcached
+        regexp:'^OPTIONS'
+        line: OPTIONS="-l 127.0.0.1,::1"
 
     - name: start and enable memcached
       service:
