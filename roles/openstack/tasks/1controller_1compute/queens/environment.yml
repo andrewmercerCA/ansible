@@ -50,7 +50,7 @@
           - mariadb
           - mariadb-server
           - python2-PyMySQL
-          - MySQL-Python
+          - MySQL-python
 
     - name: start and enable mariadb service
       service:
