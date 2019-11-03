@@ -6,6 +6,7 @@
   tasks:
     - include_vars: vars.yml
     - include: environment.yml
+    - include: keystone.yml
     #- include: environment/main.yml
   handlers:
     - include: handlers.yml
