@@ -79,24 +79,25 @@
       debug:
         msg: "{{ bootstrap_identity }}"
 
-#    - name: configure httpd
-#      lineinfile:
-#        path: /etc/httpd/conf/httpd.conf
-#        regexp: '^ServerName '
-#        line: ServerName controller0
-#
-#    - name: create wsgi-keystone.conf
-#      file:
-#        dest: /etc/httpd/conf.d/wsgi-keystone.conf
-#        src: /usr/share/keystone/wsgi-keystone.conf
-#        state: link
-#
-#    - name: start and enable httpd
-#      service:
-#        enabled: yes
-#        name: httpd
-#        state: started
-#
+    - name: configure httpd
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^ServerName '
+        line: ServerName controller0
+      notify: "restart httpd"
+
+    - name: create wsgi-keystone.conf
+      file:
+        dest: /etc/httpd/conf.d/wsgi-keystone.conf
+        src: /usr/share/keystone/wsgi-keystone.conf
+        state: link
+
+    - name: start and enable httpd
+      service:
+        enabled: yes
+        name: httpd
+        state: started
+
 #    - name: export variables
 #      shell: |
 #        export OS_USERNAME=admin
