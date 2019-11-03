@@ -66,19 +66,19 @@
       debug:
         msg: "{{ fernet_repositories }}"
 
-#    - name: bootstrap the identity service
-#      shell: |
-#        keystone-manage bootstrap --bootstrap-password "{{ the_password }}" \
-#        --bootstrap-admin-url http://controller0:5000/v3/ \
-#        --bootstrap-internal-url http://controller0:5000/v3/ \
-#        --bootstrap-public-url http://controller0:5000/v3/ \
-#        --bootstrap-region-id RegionOne
-#      register: bootstrap_identity
-#
-#    - name: output bootstrap identity
-#      debug:
-#        msg: "{{ bootstrap_identity }}"
-#
+    - name: bootstrap the identity service
+      shell: |
+        keystone-manage bootstrap --bootstrap-password "{{ the_password }}" \
+        --bootstrap-admin-url http://controller0:5000/v3/ \
+        --bootstrap-internal-url http://controller0:5000/v3/ \
+        --bootstrap-public-url http://controller0:5000/v3/ \
+        --bootstrap-region-id RegionOne
+      register: bootstrap_identity
+
+    - name: output bootstrap identity
+      debug:
+        msg: "{{ bootstrap_identity }}"
+
 #    - name: configure httpd
 #      lineinfile:
 #        path: /etc/httpd/conf/httpd.conf
