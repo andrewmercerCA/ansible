@@ -42,7 +42,7 @@
       notify: "restart httpd"
 
     - name: populate the keystone database
-      shell: /bin/sh -c "keystone-manage db_sync" keystone
+      shell: su -s /bin/sh -c "keystone-manage db_sync" keystone
       register: populate_keystone
 
     - name: output populate keystone
