@@ -17,3 +17,9 @@
     name: etcd
     state: restarted
   listen: "restart etcd"
+
+- name: httpd service handler
+  service:
+    name: httpd
+    state: restarted
+  listen: "restart httpd"
