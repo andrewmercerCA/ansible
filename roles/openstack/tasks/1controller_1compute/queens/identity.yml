@@ -118,6 +118,14 @@
       debug:
         msg: "{{ create_domain }}"
 
+    - name: create project
+      shell: openstack project create --domain default  --description "Service Project" service
+      register: create_project
+
+    - name: output project create
+      debug:
+        msg: "{{ create_project }}"
+
   when:
     - ( 'controller' in ansible_hostname )
     - ansible_facts['distribution'] == 'CentOS'
