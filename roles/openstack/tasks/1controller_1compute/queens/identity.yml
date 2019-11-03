@@ -75,8 +75,8 @@
     - name: configure httpd
       lineinfile:
         path: /etc/httpd/conf/httpd.conf
-        regexp: '^ServerName: '
-        line: ServerName: controller0
+        regexp: '^ServerName '
+        line: ServerName controller0
 
     - name: create wsgi-keystone.conf
       file:
