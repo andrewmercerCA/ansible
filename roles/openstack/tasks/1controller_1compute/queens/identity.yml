@@ -38,6 +38,7 @@
           
           [token]
           provider = fernet
+        dest: /etc/keystone/keystone.conf
       notify: "restart httpd"
 
     - name: populate the keystone database
