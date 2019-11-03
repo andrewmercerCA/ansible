@@ -110,6 +110,14 @@
           export OS_IDENTITY_API_VERSION="3"
         dest: /root/admin-rc
 
+    - name: create domain
+      shell: source /root/admin-rc && openstack domain create --description "an example domain" example
+      register: create_domain
+
+    - name: output domain create
+      debug:
+        msg: "{{ create_domain }}"
+
   when:
     - ( 'controller' in ansible_hostname )
     - ansible_facts['distribution'] == 'CentOS'
