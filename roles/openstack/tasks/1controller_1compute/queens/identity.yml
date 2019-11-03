@@ -13,7 +13,7 @@
         #login_password: "{{ the_password }}"
         name: keystone
         state: present
-    
+
     - name: create keystone user
       mysql_user:
         #login_user: mysql
@@ -41,7 +41,7 @@
         content: |
           [database]
           connection = mysql+pymysql://keystone:{{ the_password }}@controller0/keystone
-          
+
           [token]
           provider = fernet
         dest: /etc/keystone/keystone.conf
@@ -101,14 +101,14 @@
     - name: export variables
       copy:
         content: |
-         export OS_USERNAME=admin
-         export OS_PASSWORD={{ the_password }}
-         export OS_PROJECT_NAME=admin
-         export OS_USER_DOMAIN_NAME=Default
-         export OS_PROJECT_DOMAIN_NAME=Default
-         export OS_AUTH_URL=http://controller0:5000/v3
-         export OS_IDENTITY_API_VERSION="3"
-       dest: /root/admin-rc
+          export OS_USERNAME=admin
+          export OS_PASSWORD={{ the_password }}
+          export OS_PROJECT_NAME=admin
+          export OS_USER_DOMAIN_NAME=Default
+          export OS_PROJECT_DOMAIN_NAME=Default
+          export OS_AUTH_URL="http://controller0:5000/v3"
+          export OS_IDENTITY_API_VERSION="3"
+        dest: /root/admin-rc
 
   when:
     - ( 'controller' in ansible_hostname )
