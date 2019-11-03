@@ -1,5 +1,17 @@
 ---
 
+- name: mariadb service handler
+  service:
+    name: mariadb
+    state: restarted
+  listen: "restart mariadb"
+
+- name: memcached service handler
+  service:
+    name: memcached
+    state: restarted
+  listen: "restart memcached"
+
 - name: etcd service handler
   service:
     name: etcd

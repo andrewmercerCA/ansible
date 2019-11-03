@@ -128,6 +128,7 @@
           collation-server = utf8_general_ci
           character-set-server = utf8
         dest: /etc/my.cnf.d/openstack.cnf
+      notify: "restart mariadb"
   when:
     - ( 'controller' in ansible_hostname )
     - ansible_facts['distribution'] == 'CentOS'
@@ -176,6 +177,7 @@
         path: /etc/sysconfig/memcached
         regexp: '^OPTIONS'
         line: OPTIONS="-l 127.0.0.1,::1,controller0"
+      notify: "restart memcached"
 
     - name: start and enable memcached
       service:
