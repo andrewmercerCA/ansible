@@ -55,17 +55,17 @@
       debug:
         msg: "{{ populate_keystone }}"
 
-#    - name: initialize fernet repositories
-#      shell: "{{ item }}"
-#      with_items:
-#        - keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
-#        - keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
-#      register: fernet_repositories
-#
-#    - name: output fernet repositories
-#      debug:
-#        msg: "{{ fernet_repositories }}"
-#
+    - name: initialize fernet repositories
+      shell: "{{ item }}"
+      with_items:
+        - keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+        - keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+      register: fernet_repositories
+
+    - name: output fernet repositories
+      debug:
+        msg: "{{ fernet_repositories }}"
+
 #    - name: bootstrap the identity service
 #      shell: |
 #        keystone-manage bootstrap --bootstrap-password "{{ the_password }}" \
