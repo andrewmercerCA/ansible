@@ -194,28 +194,28 @@
       yum:
         name: etcd
 
-#- name: "{{ ansible_distribution }}: configure etcd"
-#  lineinfile:
-#    path: /etc/etcd/etcd.conf
-#    regexp: "{{ item }}"
-#  with_items:
-#  #[Member]
-#ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
-#ETCD_LISTEN_PEER_URLS="http://10.0.0.11:2380"
-#ETCD_LISTEN_CLIENT_URLS="http://10.0.0.11:2379"
-#ETCD_NAME="controller"
-##[Clustering]
-#ETCD_INITIAL_ADVERTISE_PEER_URLS="http://10.0.0.11:2380"
-#ETCD_ADVERTISE_CLIENT_URLS="http://10.0.0.11:2379"
-#ETCD_INITIAL_CLUSTER="controller=http://10.0.0.11:2380"
-#ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
-#ETCD_INITIAL_CLUSTER_STATE="new"
-#
-#- name: "{{ ansible_distribution }}: start and enable etcd"
-#  service:
-#    enabled: yes
-#    name: etcd
-#    state: started
+    - name: configure etcd
+      copy:
+        content: |
+          #[Member]
+          ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+          ETCD_LISTEN_PEER_URLS="http://10.0.0.11:2380"
+          ETCD_LISTEN_CLIENT_URLS="http://10.0.0.11:2379"
+          ETCD_NAME="controller"
+          #[Clustering]
+          ETCD_INITIAL_ADVERTISE_PEER_URLS="http://10.0.0.11:2380"
+          ETCD_ADVERTISE_CLIENT_URLS="http://10.0.0.11:2379"
+          ETCD_INITIAL_CLUSTER="controller=http://10.0.0.11:2380"
+          ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01"
+          ETCD_INITIAL_CLUSTER_STATE="new"
+        dest: /etc/etcd/etcd.conf
+      notify: "restart etcd"
+
+    - name: start and enable etcd
+      service:
+        enabled: yes
+        name: etcd
+        state: started
   when:
     - ( 'controller' in ansible_hostname )
     - ansible_facts['distribution'] == 'CentOS'

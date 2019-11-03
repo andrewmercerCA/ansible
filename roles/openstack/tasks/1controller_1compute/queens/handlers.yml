@@ -1,1 +1,7 @@
 ---
+
+- name: etcd service handler
+  service:
+    name: etcd
+    state: restarted
+  listen: "restart etcd"
