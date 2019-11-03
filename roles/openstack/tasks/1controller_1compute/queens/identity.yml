@@ -113,12 +113,12 @@
     - name: keystone auth
       os_auth:
         auth:
-          - auth_url: http://controller0:5000/v3
-          - username: admin
-          - password: "{{ the_password }}"
-          - project_name: admin
-          - os_project_domain_name: Default
-          - os_user_domain_name: Default
+          auth_url: http://controller0:5000/v3
+          username: admin
+          password: "{{ the_password }}"
+          project_name: admin
+          #os_project_domain_name: Default
+          #os_user_domain_name: Default
       register: keystone_auth
 
     - name: output keystone_auth
