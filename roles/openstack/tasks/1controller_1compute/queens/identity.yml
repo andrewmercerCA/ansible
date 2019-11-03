@@ -110,13 +110,32 @@
           export OS_IDENTITY_API_VERSION="3"
         dest: /root/admin-rc
 
-    - name: create domain
-      shell: source /root/admin-rc && openstack domain create --description "an example domain" example
-      register: create_domain
+    - name: keystone auth
+      os_auth:
+        auth:
+          - auth_url: http://controller0:5000/v3
+          - username: admin
+          - password: "{{ the_password }}"
+          - project_name: admin
+          - os_project_domain_name: Default
+          - os_user_domain_name: Default
+      register: keystone_auth
 
-    - name: output domain create
+    - name: output keystone_auth
       debug:
-        msg: "{{ create_domain }}"
+        msg: "{{ keystone_auth }}"
+
+    - name: create domain
+      #shell: source /root/admin-rc && openstack domain create --description "an example domain" example
+      #register: create_domain
+      os_keystone_domain:
+        description: "an example domain"
+        name: example
+        state: present
+
+    #- name: output domain create
+      #debug:
+        #msg: "{{ create_domain }}"
 
     - name: create project
       shell: openstack project create --domain default  --description "Service Project" service
