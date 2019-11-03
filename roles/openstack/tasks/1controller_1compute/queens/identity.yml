@@ -5,28 +5,34 @@
 # https://pypi.org/project/Paste
 # Paste is in maintenance mode and recently moved from bitbucket to github. Patches are accepted to keep it on life support, but for the most part, please consider using other options.
 
-- name: "{{ ansible_distribution }}: create keystone database"
-  mysql_db:
-    login_user: mysql
-    login_password: "{{ the_password }}"
-    name: keystone
-    state: present
+- name: keystone
+  block:
+    - name: create keystone database
+      mysql_db:
+        login_user: mysql
+        login_password: "{{ the_password }}"
+        name: keystone
+        state: present
     
-- name: "{{ ansible_distribution }}: create keystone user"
-  mysql_user:
-    login_user: mysql
-    login_password: "{{ the_password }}"
-    name: keystone
-    password: "{{ the_password }}"
-    priv: 'keystone.*:ALL'
-    state: present
+    - name: create keystone user
+      mysql_user:
+        login_user: mysql
+        login_password: "{{ the_password }}"
+        name: keystone
+        password: "{{ the_password }}"
+        priv: 'keystone.*:ALL'
+        state: present
 
-- name: install keystone, httpd and mod_wsgi
-  yum:
-    name:
-      - openstack-keystone
-      - httpd
-      - mod_wsgi
+    - name: install keystone, httpd and mod_wsgi
+      yum:
+        name:
+          - openstack-keystone
+          - httpd
+          - mod_wsgi
+
+  when:
+    - ( 'controller' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'
 
 ##- name: "{{ ansible_distribution }}: configure keystone"
 #  lineinfile:
