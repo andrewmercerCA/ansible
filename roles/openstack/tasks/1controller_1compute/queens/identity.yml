@@ -9,15 +9,15 @@
   block:
     - name: create keystone database
       mysql_db:
-        login_user: mysql
-        login_password: "{{ the_password }}"
+        #login_user: mysql
+        #login_password: "{{ the_password }}"
         name: keystone
         state: present
     
     - name: create keystone user
       mysql_user:
-        login_user: mysql
-        login_password: "{{ the_password }}"
+        #login_user: mysql
+        #login_password: "{{ the_password }}"
         name: keystone
         password: "{{ the_password }}"
         priv: 'keystone.*:ALL'
