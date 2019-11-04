@@ -1,5 +1,20 @@
 --- # https://docs.openstack.org/install-guide/environment.html
 
+- name: configure hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: configure /etc/hosts
+  # http://xmeblog.blogspot.com/2013/06/ansible-dynamicaly-update-etchosts.html
+  # https://gist.github.com/rothgar/8793800
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '.*{{ item }}$'
+    line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ item }}"
+    state: present
+  #when: hostvars[item].ansible_default_ipv4.address is defined
+  with_items: "{{ groups.all }}"
+
 ## NTP
 ### https://docs.openstack.org/install-guide/environment-ntp.html
 
@@ -38,7 +53,24 @@
           - openstack-selinux
   when:
     - ( 'controller' in ansible_hostname ) or ( 'compute' in ansible_hostname )
-    - ansible_facts['distribution'] == 'CentOS'
+    - ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '7'
+
+- name: openstack repo
+  block:
+    - name: install openstack repo package
+      yum:
+        name:
+          - https://rdoproject.org/repos/rdo-release.rpm
+          - http://mirror.centos.org/centos/7/extras/x86_64/Packages/centos-release-openstack-queens-1-2.el7.centos.noarch.rpm
+
+    - name: install other openstack packages
+      yum:
+        name:
+          - python-openstackclient
+          - openstack-selinux
+  when:
+    - ( 'controller' in ansible_hostname ) or ( 'compute' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == '8'
 
 ### MariaDB
 #### https://docs.openstack.org/install-guide/environment-sql-database.html
@@ -59,63 +91,78 @@
         name: mariadb
         state: started
 
-    - name: setup ~/.my.cnf
-      copy:
-        content: |
-          [client]
-          user = root
-          password = "{{ the_password }}"
-        dest: /root/.my.cnf
-        mode: 0400
-
     - name: set the root password
       mysql_user:
         user: root
         password: "{{ the_password }}"
         host: localhost
+        login_unix_socket: /var/lib/mysql/mysql.sock
 
-    - name: remove anonymous user ansible_fqdn
-      mysql_user:
-        user: ""
-        password: "{{ the_password }}"
-        host: "{{ ansible_fqdn }}"
-        state: absent
+    - name: setup ~/.my.cnf
+      copy:
+        content: |
+          [client]
+          user = root
+          password = {{ the_password }}
+        dest: /root/.my.cnf
+        mode: 0400
 
-    - name: remove anonymous user
-      mysql_user:
-        user: ""
-        password: "{{ the_password }}"
-        state: absent
+    - name: "{{ansible_distribution}}: mysql_secure_installation file"
+      copy:
+        content: |
+          DELETE FROM mysql.user WHERE User='';
+          DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+          DROP DATABASE IF EXISTS test;
+          DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+          FLUSH PRIVILEGES;
+        dest: /tmp/mysql_secure_installation.sql
 
-    - name: Secures the MySQL root user for IPV6 localhost (::1)
-      mysql_user:
-        user: root
-        password: "{{ the_password }}"
-        host: "::1"
+    - name: "{{ansible_distribution}}: mysql_secure_installation execute"
+      shell: 'mysql < /tmp/mysql_secure_installation.sql'
 
-    - name: Secures the MySQL root user for IPV4 localhost (127.0.0.1)
-      mysql_user:
-        user: root
-        password: "{{ the_password }}"
-        host: 127.0.0.1
-
-    - name: Secures the MySQL root user for localhost domain (localhost)
-      mysql_user:
-        user: root
-        password: "{{ the_password }}"
-        host: localhost
-
-    - name: Secures the MySQL root user for server_hostname domain
-      mysql_user:
-        user: root
-        password: "{{ the_password }}"
-        host: "{{ ansible_fqdn }}"
-
-    - name: remove the test database
-      mysql_db:
-        db: test
-        state: absent
-
+#
+#    - name: remove anonymous user ansible_fqdn
+#      mysql_user:
+#        user: ""
+#        password: "{{ the_password }}"
+#        host: "{{ ansible_fqdn }}"
+#        state: absent
+#
+#    - name: remove anonymous user
+#      mysql_user:
+#        user: ""
+#        password: "{{ the_password }}"
+#        state: absent
+#
+#    - name: Secures the MySQL root user for IPV6 localhost (::1)
+#      mysql_user:
+#        user: root
+#        password: "{{ the_password }}"
+#        host: "::1"
+#
+#    - name: Secures the MySQL root user for IPV4 localhost (127.0.0.1)
+#      mysql_user:
+#        user: root
+#        password: "{{ the_password }}"
+#        host: 127.0.0.1
+#
+#    - name: Secures the MySQL root user for localhost domain (localhost)
+#      mysql_user:
+#        user: root
+#        password: "{{ the_password }}"
+#        host: localhost
+#
+#    - name: Secures the MySQL root user for server_hostname domain
+#      mysql_user:
+#        user: root
+#        password: "{{ the_password }}"
+#        host: "{{ ansible_fqdn }}"
+#
+#    - name: remove the test database
+#      mysql_db:
+#        db: test
+#        state: absent
+#
     - name: create openstack.cnf
       copy:
         content: |

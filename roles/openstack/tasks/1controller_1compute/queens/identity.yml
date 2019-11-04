@@ -9,20 +9,19 @@
   block:
     - name: create keystone database
       mysql_db:
-        #login_user: mysql
-        #login_password: "{{ the_password }}"
         name: keystone
         state: present
+        login_unix_socket: /var/lib/mysql/mysql.sock
 
     - name: create keystone user
       mysql_user:
-        #login_user: mysql
-        #login_password: "{{ the_password }}"
         host: "{{ item }}"
         name: keystone
         password: "{{ the_password }}"
+        #password: mKZzxpRRLAbkibhLf7P6XRGrybG9xIDQyItIZHoC
         priv: "keystone.*:ALL"
         state: present
+        login_unix_socket: /var/lib/mysql/mysql.sock
       with_items:
         - localhost
         - 127.0.0.1
@@ -110,40 +109,101 @@
           export OS_IDENTITY_API_VERSION="3"
         dest: /root/admin-rc
 
-    - name: keystone auth
-      os_auth:
-        auth:
-          auth_url: http://controller0:5000/v3
-          username: admin
-          password: "{{ the_password }}"
-          project_name: admin
-          #os_project_domain_name: Default
-          #os_user_domain_name: Default
-      register: keystone_auth
+    # Running into this error:
+    # fatal: [controller0]: FAILED! => {"changed": false, "msg": "To utilize this module, the installed version ofthe openstacksdk library MUST be >=0.12.0"}
+    # Tried upgrading but ran into some serious dependency issues so skipping this for now
+#    - name: keystone auth
+#      os_auth:
+#        auth:
+#          auth_url: http://controller0:5000/v3
+#          username: admin
+#          password: "{{ the_password }}"
+#          project_name: admin
+#          #os_project_domain_name: Default
+#          #os_user_domain_name: Default
+#      register: keystone_auth
+#
+#    - name: output keystone_auth
+#      debug:
+#        msg: "{{ keystone_auth }}"
+#
+#    - name: create domain
+#      #shell: source /root/admin-rc && openstack domain create --description "an example domain" example
+#      #register: create_domain
+#      os_keystone_domain:
+#        description: "an example domain"
+#        name: example
+#        state: present
+#
+#    - name: output domain create
+#      debug:
+#        msg: "{{ create_domain }}"
+#
+#    - name: create project
+#      shell: openstack project create --domain default  --description "Service Project" service
+#      register: create_project
+#
+#    - name: output project create
+#      debug:
+#        msg: "{{ create_project }}"
+#
+    # https://docs.openstack.org/keystone/queens/install/keystone-users-rdo.html
+    - name: putting all the openstack cli commands into a bash script
+      copy:
+        content: |
+          #!/bin/bash
+          source /root/admin-rc
+          openstack domain create --description "an example domain" example
+          openstack project create --domain default --description "Service Project" service
+          openstack project create --domain default --description "Demo Project" demo
+          openstack user create --domain default --password-prompt demo # this requires a password
+          openstack role create user
+          openstack role add --project demo --user demo user
+        dest: /root/identity.sh
 
-    - name: output keystone_auth
-      debug:
-        msg: "{{ keystone_auth }}"
+    # https://docs.openstack.org/keystone/queens/install/keystone-verify-rdo.html
+    - name: testing the operations
+      copy:
+        content: |
+          #!/bin/bash
+          
+          unset OS_AUTH_URL OS_PASSWORD
 
-    - name: create domain
-      #shell: source /root/admin-rc && openstack domain create --description "an example domain" example
-      #register: create_domain
-      os_keystone_domain:
-        description: "an example domain"
-        name: example
-        state: present
+          openstack --os-auth-url http://controller:35357/v3 \
+          --os-project-domain-name Default --os-user-domain-name Default \
+          --os-project-name admin --os-username admin token issue
 
-    #- name: output domain create
-      #debug:
-        #msg: "{{ create_domain }}"
+          openstack --os-auth-url http://controller:5000/v3 \
+          --os-project-domain-name Default --os-user-domain-name Default \
+          --os-project-name demo --os-username demo token issue
 
-    - name: create project
-      shell: openstack project create --domain default  --description "Service Project" service
-      register: create_project
+        dest: /root/identity_test.sh
 
-    - name: output project create
-      debug:
-        msg: "{{ create_project }}"
+    - name: create admin-openrc script
+      copy:
+        content: |
+          export OS_PROJECT_DOMAIN_NAME=Default
+          export OS_USER_DOMAIN_NAME=Default
+          export OS_PROJECT_NAME=admin
+          export OS_USERNAME=admin
+          export OS_PASSWORD=ADMIN_PASS
+          export OS_AUTH_URL=http://controller:5000/v3
+          export OS_IDENTITY_API_VERSION=3
+          export OS_IMAGE_API_VERSION=2
+        dest: /root/admin-openrc
+
+    - name: create demo-openrc script
+      copy:
+        content: |
+          export OS_PROJECT_DOMAIN_NAME=Default
+          export OS_USER_DOMAIN_NAME=Default
+          export OS_PROJECT_NAME=demo
+          export OS_USERNAME=demo
+          export OS_PASSWORD=DEMO_PASS
+          export OS_AUTH_URL=http://controller:5000/v3
+          export OS_IDENTITY_API_VERSION=3
+          export OS_IMAGE_API_VERSION=2
+        dest: /root/demo-openrc
 
   when:
     - ( 'controller' in ansible_hostname )
