@@ -91,7 +91,7 @@
         name: mariadb
         state: started
 
-    - name: set the root password
+    - name: set the mysql root password
       mysql_user:
         user: root
         password: "{{ the_password }}"
@@ -107,7 +107,7 @@
         dest: /root/.my.cnf
         mode: 0400
 
-    - name: "{{ansible_distribution}}: mysql_secure_installation file"
+    - name: mysql_secure_installation file
       copy:
         content: |
           DELETE FROM mysql.user WHERE User='';
@@ -117,7 +117,7 @@
           FLUSH PRIVILEGES;
         dest: /tmp/mysql_secure_installation.sql
 
-    - name: "{{ansible_distribution}}: mysql_secure_installation execute"
+    - name: mysql_secure_installation execute
       shell: 'mysql < /tmp/mysql_secure_installation.sql'
 
 #

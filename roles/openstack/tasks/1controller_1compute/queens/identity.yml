@@ -13,7 +13,7 @@
         state: present
         login_unix_socket: /var/lib/mysql/mysql.sock
 
-    - name: create keystone user
+    - name: create keystone mysql user
       mysql_user:
         host: "{{ item }}"
         name: keystone
@@ -49,10 +49,7 @@
     - name: populate the keystone database
       command: /bin/sh -c "keystone-manage db_sync" keystone
       register: populate_keystone
-
-    - name: output populate keystone
-      debug:
-        msg: "{{ populate_keystone }}"
+      #run_once: yes
 
     - name: initialize fernet repositories
       shell: "{{ item }}"
@@ -60,10 +57,7 @@
         - keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
         - keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
       register: fernet_repositories
-
-    - name: output fernet repositories
-      debug:
-        msg: "{{ fernet_repositories }}"
+      #run_once: yes
 
     - name: bootstrap the identity service
       shell: |
@@ -73,10 +67,7 @@
         --bootstrap-public-url http://controller0:5000/v3/ \
         --bootstrap-region-id RegionOne
       register: bootstrap_identity
-
-    - name: output bootstrap identity
-      debug:
-        msg: "{{ bootstrap_identity }}"
+      #run_once: yes
 
     - name: configure httpd
       lineinfile:
@@ -109,44 +100,81 @@
           export OS_IDENTITY_API_VERSION="3"
         dest: /root/admin-rc
 
-    # Running into this error:
-    # fatal: [controller0]: FAILED! => {"changed": false, "msg": "To utilize this module, the installed version ofthe openstacksdk library MUST be >=0.12.0"}
-    # Tried upgrading but ran into some serious dependency issues so skipping this for now
-#    - name: keystone auth
-#      os_auth:
-#        auth:
-#          auth_url: http://controller0:5000/v3
-#          username: admin
-#          password: "{{ the_password }}"
-#          project_name: admin
-#          #os_project_domain_name: Default
-#          #os_user_domain_name: Default
-#      register: keystone_auth
-#
-#    - name: output keystone_auth
-#      debug:
-#        msg: "{{ keystone_auth }}"
-#
-#    - name: create domain
-#      #shell: source /root/admin-rc && openstack domain create --description "an example domain" example
-#      #register: create_domain
-#      os_keystone_domain:
-#        description: "an example domain"
-#        name: example
-#        state: present
-#
-#    - name: output domain create
-#      debug:
-#        msg: "{{ create_domain }}"
-#
-#    - name: create project
-#      shell: openstack project create --domain default  --description "Service Project" service
-#      register: create_project
-#
-#    - name: output project create
-#      debug:
-#        msg: "{{ create_project }}"
-#
+    - name: create auth fact
+      set_fact:
+        keystone_auth:
+          # https://blog.oddbit.com/post/2015-10-26-ansible-20-new-openstack-modules/
+          # https://github.com/ansible/ansible/issues/19621
+          auth_url: http://controller0:5000/v3
+          username: admin
+          password: "{{ the_password }}"
+          project_name: admin
+          project_domain_name: Default
+          user_domain_name: Default
+      register: keystone_auth
+
+    # https://docs.openstack.org/keystone/queens/install/keystone-users-rdo.html
+    - name: create service project
+      #shell: source /root/admin-rc && openstack domain create --description "an example domain" example
+      #register: create_domain
+      os_project:
+        auth: "{{ keystone_auth }}"
+        description: Service Project
+        domain_id: default
+        enabled: true
+        name: service
+        state: present
+      register: create_service_project
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create demo project
+      os_project:
+        auth: "{{ keystone_auth }}"
+        description: Demo Project
+        domain_id: default
+        enabled: true
+        name: demo
+        state: present
+      register: create_demo_project
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create the demo user
+      os_user:
+        auth: "{{ keystone_auth }}"
+        name: demo
+        password: "{{ the_password }}"
+        state: present
+        domain: default
+      register: create_demo_user
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create the user role
+      os_keystone_role:
+        auth: "{{ keystone_auth }}"
+        name: user
+        state: present
+      register: create_user_role
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: add the user role to the demo project and user
+      os_user_role:
+        auth: "{{ keystone_auth }}"
+        user: demo
+        role: user
+        project: demo
+      register: add_user_role
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+    
     # https://docs.openstack.org/keystone/queens/install/keystone-users-rdo.html
     - name: putting all the openstack cli commands into a bash script
       copy:

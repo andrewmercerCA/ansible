@@ -1,60 +1,307 @@
 --- # https://docs.openstack.org/nova/queens/install/
 # https://docs.openstack.org/nova/queens/install/controller-install-rdo.html
+- name: nova controller
+  block:
 
-- name: "{{ ansible_distribution }}: create nova database"
-  mysql_db:
-    login_user: mysql
-    login_password: "{{ mysql_password }}"
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - nova_api
-    - nova
-    - nova_cell0
+    - name: create nova database
+      mysql_db:
+        name: "{{ item }}"
+        state: present
+        login_unix_socket: /var/lib/mysql/mysql.sock
+      with_items:
+        - nova_api
+        - nova
+        - nova_cell0
+
+    - name: output nova_databases
+      debug:
+        msg: "{{ nova_databases }}"
     
-- name: "{{ ansible_distribution }}: create nova user"
-  mysql_user:
-    login_user: mysql
-    login_password: "{{ mysql_password }}"
-    name: "{{ item }}"
-    password: "{{ nova_dbpass }}"
-    priv: 'nova.*:ALL'
-    state: present
-  with_items:
-    - nova_api
-    - nova
-    - nova_cell0
+    # if i specify multiple privileges in the same action, it only takes the last one
+    # https://github.com/ansible/ansible/issues/25366
+    - name: create nova user
+      mysql_user:
+        name: nova
+        password: "{{ the_password }}"
+        priv: 'nova_api.*:ALL'
+        state: present
 
-- name: "{{ ansible_distribution }}: openstack nova roles and sheeit"
+    - name: create nova user
+      mysql_user:
+        name: nova
+        password: "{{ the_password }}"
+        priv: 'nova.*:ALL'
+        state: present
 
-- name: "{{ ansible_distribution }}: nova packages"
-  yum:
-    name:
-      - openstack-nova-api
-      - openstack-nova-conductor
-      - openstack-nova-console
-      - openstack-nova-novncproxy
-      - openstack-nova-scheduler
-      - openstack-nova-placement-api
+    - name: create nova user
+      mysql_user:
+        name: nova
+        password: "{{ the_password }}"
+        priv: 'nova_cell0.*:ALL'
+        state: present
 
-- name: "{{ ansible_distribution }}: nova configuration"
+    - name: create auth fact
+      set_fact:
+        keystone_auth:
+          # https://blog.oddbit.com/post/2015-10-26-ansible-20-new-openstack-modules/
+          # https://github.com/ansible/ansible/issues/19621
+          auth_url: http://controller0:5000/v3
+          username: admin
+          password: "{{ the_password }}"
+          project_name: admin
+          project_domain_name: Default
+          user_domain_name: Default
+      register: keystone_auth
 
-- name: "{{ ansible_distribution }}: populate databases"
-  shell: "{{ item }}"
-  with_items:
-    - su -s /bin/sh -c "nova-manage api_db sync" nova
-    - su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
-    - su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova
-    - su -s /bin/sh -c "nova-manage db sync" nova
+    - name: create the nova user
+      os_user:
+        auth: "{{ keystone_auth }}"
+        name: nova
+        password: "{{ the_password }}"
+        state: present
+        domain: default
+      register: create_nova_user
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
 
-- name: "{{ ansible_distribution }}: nova services"
-  service:
-    enabled: yes
-    name: "{{ item }}"
-    state: started
-  with_items:
-    - openstack-nova-api.service
-    - openstack-nova-consoleauth.service
-    - openstack-nova-scheduler.service
-    - openstack-nova-conductor.service
-    - openstack-nova-novncproxy.service
+    - name: add the nova user to the service project with admin role
+      os_user_role:
+        auth: "{{ keystone_auth }}"
+        user: nova
+        role: admin
+        project: service
+      register: nova_to_service_with_admin
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create the nova service
+      os_keystone_service:
+        auth: "{{ keystone_auth }}"
+        description: "OpenStack Compute Service"
+        name: nova
+        service_type: compute
+        state: present
+      register: create_nova_service
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create compute service endpoints
+      os_keystone_endpoint:
+        auth: "{{ keystone_auth }}"
+        endpoint_interface: "{{ item }}"
+        region: RegionOne
+        service: nova
+        state: present
+        url: http://controller0:8774/v2.1
+      register: create_compute_endpoints
+      with_items:
+        - public
+        - internal
+        - admin
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create the placement user
+      os_user:
+        auth: "{{ keystone_auth }}"
+        name: placement
+        password: "{{ the_password }}"
+        state: present
+        domain: default
+      register: create_placement_user
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: add the placement user to the service project with admin role
+      os_user_role:
+        auth: "{{ keystone_auth }}"
+        user: placement
+        role: admin
+        project: service
+      register: placement_to_service_with_admin
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create the placement service
+      os_keystone_service:
+        auth: "{{ keystone_auth }}"
+        description: "OpenStack Image Service"
+        name: placement
+        service_type: placement
+        state: present
+      register: create_placement_service
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create placement service endpoints
+      os_keystone_endpoint:
+        auth: "{{ keystone_auth }}"
+        endpoint_interface: "{{ item }}"
+        region: RegionOne
+        service: placement
+        state: present
+        url: http://controller0:8778
+      register: create_compute_endpoints
+      with_items:
+        - public
+        - internal
+        - admin
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: nova packages
+      yum:
+        name:
+          - openstack-nova-api
+          - openstack-nova-conductor
+          - openstack-nova-console
+          - openstack-nova-novncproxy
+          - openstack-nova-scheduler
+          - openstack-nova-placement-api
+
+    - name: nova configuration
+      copy:
+        content: |
+          [DEFAULT]
+          enabled_apis = osapi_compute,metadata
+          transport_url = rabbit://openstack:{{ the_password }}@controller0
+          my_ip = "{{ ansible_default_ipv4.address }}"
+          use_neutron = True
+          firewall_driver = nova.virt.firewall.NoopFirewallDriver
+
+          [api]
+          auth_strategy = keystone
+
+          [api_database]
+          connection = mysql+pymysql://nova:{{ the_password }}@controller0/nova_api
+
+          [database]
+          connection = mysql+pymysql://nova:{{ the_password }}@controller0/nova
+
+          [glance]
+          api_servers = http://controller0:9292
+
+          [keystone_authtoken]
+          auth_url = http://controller0:5000/v3
+          memcached_servers = controller:11211
+          auth_type = password
+          project_domain_name = default
+          user_domain_name = default
+          project_name = service
+          username = nova
+          password = "{{ the_password }}"
+
+          [oslo_concurrency]
+          lock_path = /var/lib/nova/tmp
+
+          [placement]
+          os_region_name = RegionOne
+          project_domain_name = Default
+          project_name = service
+          auth_type = password
+          user_domain_name = Default
+          auth_url = http://controller0:5000/v3
+          username = placement
+          password = "{{ the_password }}"
+
+          [vnc]
+          enabled = true
+          server_listen = $my_ip
+          server_proxyclient_address = $my_ip
+        dest: /etc/nova/nova.conf
+
+    - name: update nova-placement-api httpd conf
+      copy:
+        content: |
+          Listen 8778
+
+          <VirtualHost *:8778>
+            WSGIProcessGroup nova-placement-api
+            WSGIApplicationGroup %{GLOBAL}
+            WSGIPassAuthorization On
+            WSGIDaemonProcess nova-placement-api processes=3 threads=1 user=nova group=nova
+            WSGIScriptAlias / /usr/bin/nova-placement-api
+            <IfVersion >= 2.4>
+              ErrorLogFormat "%M"
+            </IfVersion>
+           ErrorLog /var/log/nova/nova-placement-api.log
+           #SSLEngine On
+           #SSLCertificateFile ...
+           #SSLCertificateKeyFile ...
+
+          </VirtualHost>
+
+          Alias /nova-placement-api /usr/bin/nova-placement-api
+
+          <Location /nova-placement-api>
+            SetHandler wsgi-script
+            Options +ExecCGI
+            WSGIProcessGroup nova-placement-api
+            WSGIApplicationGroup %{GLOBAL}
+            WSGIPassAuthorization On
+          </Location>
+
+          <Directory /usr/bin>
+            <IfVersion >= 2.4>
+              Require all granted
+            </IfVersion>
+            <IfVersion < 2.4>
+              Order allow,deny
+              Allow from all
+            </IfVersion>
+          </Directory>
+
+        dest: /etc/httpd/conf.d/00-nova-placement-api.conf
+      notify: "restart httpd"
+
+    - name: populate nova databases
+      shell: "{{ item }}"
+      with_items:
+        - /bin/sh -c "nova-manage api_db sync" nova
+        - /bin/sh -c "nova-manage cell_v2 map_cell0" nova
+        - /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova
+        - /bin/sh -c "nova-manage db sync" nova
+      run_once: true
+
+    - name: verify cell0 and cell1 are registered
+      shell: nova-manage cell_v2 list_cells
+      register: cell0_cell1
+
+    - name: output cell0_cell1
+      debug:
+        msg: "{{ cell0_cell1 }}"
+
+    - name: nova services
+      service:
+        enabled: yes
+        name: "{{ item }}"
+        state: started
+      with_items:
+        - openstack-nova-api.service
+        - openstack-nova-consoleauth.service
+        - openstack-nova-scheduler.service
+        - openstack-nova-conductor.service
+        - openstack-nova-novncproxy.service
+
+    - name: open firewall ports
+      firewalld:
+        permanent: yes
+        port: "{{ item }}"
+        state: enabled
+        zone: public
+      with_items:
+        - 5000/tcp
+        - 5672/tcp
+        - 8778/tcp
+
+  when:
+    - ( 'controller' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'
