@@ -1,0 +1,15 @@
+openstack_version: queens
+the_password: mKZzxpRRLAbkibhLf7P6XRGrybG9xIDQyItIZHoC
+nova_databases:
+  - nova
+  - nova_api
+  - nova_cell0
+keystone_auth:
+  # https://blog.oddbit.com/post/2015-10-26-ansible-20-new-openstack-modules/
+  # https://github.com/ansible/ansible/issues/19621
+  auth_url: http://controller0:5000/v3
+  username: admin
+  password: "{{ the_password }}"
+  project_name: admin
+  project_domain_name: Default
+  user_domain_name: Default

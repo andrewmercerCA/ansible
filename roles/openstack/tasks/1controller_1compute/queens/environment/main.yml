@@ -1,6 +1,0 @@
---- # https://docs.openstack.org/install-guide/environment.html
-
-- hosts: all
-  tasks:
-    - include_vars: vars.yml
-    - include: environment.yml

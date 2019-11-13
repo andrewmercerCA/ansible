@@ -1,0 +1,41 @@
+--- # https://docs.openstack.org/nova/queens/install/compute-install.html
+# https://docs.openstack.org/nova/queens/install/compute-install-rdo.html
+- name: nova compute
+  block:
+
+    - name: install compute
+      yum:
+        name: openstack-nova-compute
+
+    - name: nova compute configuration
+      template:
+        dest: /etc/nova/nova.conf
+        src: nova.conf.j2
+
+    - name: compute services
+      service:
+        enabled: yes
+        name: "{{ item }}"
+        state: started
+      with_items:
+        - libvirtd.service
+        - openstack-nova-compute
+
+  when:
+    - ( 'compute' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'
+
+- name: after compute has been configured, discover compute host
+  shell: /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
+  register: discover_compute
+  when:
+    - ( 'controller' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'
+
+- name: output discover_compute
+  debug:
+    msg: "{{ discover_compute }}"
+
+# you could also add the following to nova.conf on the controller:
+# [scheduler]
+# discover_hosts_in_cells_interval = 300

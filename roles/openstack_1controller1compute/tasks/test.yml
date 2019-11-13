@@ -1,0 +1,4 @@
+---
+- name: output keystone_auth
+  debug:
+    msg: "{{ keystone_auth }}"

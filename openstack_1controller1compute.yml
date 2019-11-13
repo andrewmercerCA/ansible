@@ -1,0 +1,7 @@
+--- 
+- hosts: openstack
+  # pre_tasks: 
+  roles: 
+    - openstack_1controller1compute
+  # post_tasks: 
+  # tags:

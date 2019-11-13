@@ -1,0 +1,44 @@
+# * * * * * common * * * * *
+[DEFAULT]
+transport_url = rabbit://openstack:{{ the_password }}@controller0
+auth_strategy = keystone
+{% if 'controller' in ansible_hostname %}
+# * * * * * controller * * * * *
+core_plugin = ml2
+service_plugins = router
+allow_overlapping_ips = true
+notify_nova_on_port_status_changes = true
+notify_nova_on_port_data_changes = true
+{% endif %}
+
+[database]
+connection = mysql+pymysql://neutron:{{ the_password }}@controller0/neutron
+
+# * * * * * common * * * * *
+[keystone_authtoken]
+auth_uri = http://controller0:5000
+auth_url = http://controller0:35357
+memcached_servers = controller0:11211
+auth_type = password
+project_domain_name = default
+user_domain_name = default
+project_name = service
+username = neutron
+password = "{{ the_password }}"
+
+{% if 'controller' in ansible_hostname %}
+# * * * * * controller * * * * *
+[nova]
+auth_url = http://controller0:35357
+auth_type = password
+project_domain_name = default
+user_domain_name = default
+region_name = RegionOne
+project_name = service
+username = nova
+password = "{{ the_password }}"
+{% endif %}
+
+# * * * * * common * * * * *
+[oslo_concurrency]
+lock_path = /var/lib/neutron/tmp

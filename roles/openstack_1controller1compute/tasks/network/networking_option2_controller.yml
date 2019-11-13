@@ -1,0 +1,94 @@
+--- # Networking Option 2: Self-service networks - Controller
+# https://docs.openstack.org/neutron/queens/install/controller-install-option2-rdo.html
+- name: neutron networking option 2 - self-service networks - controller
+  block:
+
+    - name: configure ML2 plugin
+      copy:
+        content: |
+          [ml2]
+          type_drivers = flat,vlan,vxlan
+          tenant_network_types = vxlan
+          mechanism_drivers = linuxbridge,l2population
+          extension_drivers = port_security
+
+          [ml2_type_flat]
+          flat_networks = provider
+
+          [ml2_type_vxlan]
+          vni_ranges = 1:1000
+
+          [securitygroup]
+          enable_ipset = true
+        dest: /etc/neutron/plugins/ml2/ml2_conf.ini
+
+    - name: configure linux bridge agent
+      copy:
+        content: |
+          [linux_bridge]
+          physical_interface_mappings = provider:PROVIDER_INTERFACE_NAME
+
+          [vxlan]
+          enable_vxlan = true
+          local_ip = OVERLAY_INTERFACE_IP_ADDRESS
+          l2_population = true
+
+          [securitygroup]
+          enable_security_group = true
+          firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
+        dest: /etc/neutron/plugins/ml2/linuxbridge_agent.ini
+
+    #- name: kernel parameters
+    #  sysctl:
+    #    name: "{{ item }}"
+    #    reload: yes
+    #    state: present
+    #    value: '1'
+    #  with_items:
+    #    - net.bridge.bridge-nf-call-iptables
+    #    - net.bridge.bridge-nf-call-ip6tables
+
+    - name: configure layer-3 agent
+      copy:
+        content: |
+          [DEFAULT]
+          interface_driver = linuxbridge
+        dest: /etc/neutron/l3_agent.ini
+
+    - name: configure dhcp agent
+      copy:
+        content: |
+          [DEFAULT]
+          interface_driver = linuxbridge
+          dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq
+          enable_isolated_metadata = true
+        dest: /etc/neutron/dhcp_agent.ini
+
+    - name: configure metadata agent
+      copy:
+        content: |
+          [DEFAULT]
+          nova_metadata_host = controller0
+          metadata_proxy_shared_secret = "{{ the_password }}"
+        dest: /etc/neutron/metadata_agent.ini
+
+    - name: configure compute service to use networking service
+      copy:
+        content: |
+          [neutron]
+          url = http://controller0:9696
+          auth_url = http://controller0:35357
+          auth_type = password
+          project_domain_name = default
+          user_domain_name = default
+          region_name = RegionOne
+          project_name = service
+          username = neutron
+          password = "{{ the_password }}"
+          service_metadata_proxy = true
+          metadata_proxy_shared_secret = "{{ the_password }}"
+        dest: /etc/nova/nova.conf
+
+  when:
+    - ( 'controller' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'

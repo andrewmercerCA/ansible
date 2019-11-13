@@ -1,0 +1,105 @@
+--- # https://docs.openstack.org/neutron/queens/install/index.html
+## https://docs.openstack.org/neutron/queens/install/install-rdo.html
+
+- name: networking controller red hat
+  # https://docs.openstack.org/neutron/queens/install/install-rdo.html
+  block:
+
+    - name: create neutron database
+      mysql_db:
+        name: neutron
+        state: present
+        login_unix_socket: /var/lib/mysql/mysql.sock
+
+    - name: create neutron user
+      mysql_user:
+        name: neutron
+        password: "{{ the_password }}"
+        priv: 'neutron.*:ALL'
+        state: present
+        login_unix_socket: /var/lib/mysql/mysql.sock
+
+    - name: create the neutron user
+      os_user:
+        auth: "{{ keystone_auth }}"
+        name: neutron
+        password: "{{ the_password }}"
+        state: present
+        domain: default
+      register: create_neutron_user
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: add the neutron user to the service project with admin role
+      os_user_role:
+        auth: "{{ keystone_auth }}"
+        user: neutron
+        role: admin
+        project: service
+      register: neutron_to_service_with_admin
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create the neutron service
+      os_keystone_service:
+        auth: "{{ keystone_auth }}"
+        description: "OpenStack Neutron Service"
+        name: neutron
+        service_type: compute
+        state: present
+      register: create_neutron_service
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - name: create neutron service endpoints
+      os_keystone_endpoint:
+        auth: "{{ keystone_auth }}"
+        endpoint_interface: "{{ item }}"
+        region: RegionOne
+        service: neutron
+        state: present
+        url: http://controller0:9696
+      register: create_compute_endpoints
+      with_items:
+        - public
+        - internal
+        - admin
+      environment:
+        # https://github.com/ansible/ansible/issues/26092
+        OS_IDENTITY_API_VERSION: 3
+
+    - include: networking_option2_controller.yml
+
+    - name: symlink plugin.ini -> ml2_conf.ini
+      file:
+        dest: /etc/neutron/plugin.ini
+        src: /etc/neutron/plugins/ml2/ml2_conf.ini
+        state: link
+
+    - name: populate the database
+      shell: /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
+
+    - name: restart openstack-nova-api.service
+      service:
+        name: openstack-nova-api.service
+        state: restarted
+
+    - name: start and enable neutron services
+      service:
+        enabled: yes
+        name: "{{ item }}"
+        state: started
+      with_items:
+        - neutron-server.service
+        - neutron-linuxbridge-agent.service
+        - neutron-dhcp-agent.service
+        - neutron-metadata-agent.service
+        # For networking option 2, also enable and start the layer-3 service:
+        - neutron-l3-agent.service
+
+  when:
+    - ( 'controller' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'

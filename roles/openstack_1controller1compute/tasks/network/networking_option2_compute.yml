@@ -1,0 +1,40 @@
+--- # Networking Option 2: Self-service networks - Compute
+# https://docs.openstack.org/neutron/queens/install/compute-install-option2-rdo.html
+
+- name: neutron networking option 2 - self-service networks - compute
+  block:
+
+    - name: configure the linux bridge agent
+      copy:
+        content: |
+          [linux_bridge]
+          physical_interface_mappings = provider:{{ ansible_default_ipv4.interface }}
+
+          [vxlan]
+          enable_vxlan = true
+          local_ip = "{{ ansible_default_ipv4.address }}"
+          l2_population = true
+
+          [securitygroup]
+          enable_security_group = true
+          firewall_driver = neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
+        dest: /etc/neutron/plugins/ml2/linuxbridge_agent.ini
+
+    #- name: kernel parameters
+    #  sysctl:
+    #    name: "{{ item }}"
+    #    reload: yes
+    #    state: present
+    #    value: '1'
+    #  with_items:
+    #    - net.bridge.bridge-nf-call-iptables
+    #    - net.bridge.bridge-nf-call-ip6tables
+    
+    - name: restart openstack-nova-compute.service
+      service:
+        name: openstack-nova-compute.service
+        state: restarted
+
+  when:
+    - ( 'compute' in ansible_hostname )
+    - ansible_facts['distribution'] == 'CentOS'

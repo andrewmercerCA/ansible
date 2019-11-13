@@ -1,0 +1,9 @@
+--- # https://docs.openstack.org/install-guide/
+
+# ansible-playbook -b -i ~/ansible/roles/openstack_1controller1compute/hosts ~/ansible/openstack_1controller1compute.yml
+
+- include: environment/main.yml
+- include: identity/main.yml
+- include: image/main.yml
+- include: compute/main.yml
+- include: neutron/main.yml
