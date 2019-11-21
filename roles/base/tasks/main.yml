@@ -52,6 +52,22 @@
     dest: /etc/profile.d/ps.sh
   when: ansible_os_family == 'RedHat'
 
+- name: "{{ ansible_distribution }}: bash customizations"
+  copy:
+    content: |
+      alias grep_whitespace="grep -v '^\s*$\|^\s*\#'"
+      PATH=$PATH:$HOME/.local/bin:$HOME/bin:$HOME/bin_public:$HOME/bin_private
+      export PATH
+    dest: /etc/profile.d/amercer.sh
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ ansible_distribution }}: vim customizations"
+  copy:
+    content: |
+      filetype indent off
+      autocmd FileType yaml setlocal et ts=2 ai sw=2
+    dest: "{{ ansible_userdir }}/.vimrc"
+
 - name: "{{ansible_distribution}}: install selinux packages"
   yum:
     name: "{{selinux_packages}}"

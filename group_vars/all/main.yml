@@ -1,0 +1,8 @@
+apache_conf_dir: "{{ 'conf.d' if ansible_os_family == 'RedHat' else 'sites-available' if ansible_distribution == 'Ubuntu' }}"
+apache_user: "{{ 'apache' if ansible_os_family == 'RedHat' else 'www-data' if ansible_distribution == 'Ubuntu' }}"
+apache_group: "{{ 'apache' if ansible_os_family == 'RedHat' else 'www-data' if ansible_distribution == 'Ubuntu' }}"
+apache_name: "{{ 'httpd' if ansible_os_family == 'RedHat' else 'apache2' if ansible_distribution == 'Ubuntu' }}"
+bash_profile: "{{ '.bash_profile' if ansible_os_family == 'RedHat' else '.profile' if ansible_os_family == 'Debian' }}"
+mysql_name: "{{ 'mariadb' if ansible_os_family == 'RedHat' else 'mysql' if ansible_distribution == 'Ubuntu' }}"
+pkg_manager: "{{ 'yum' if ansible_os_family == 'RedHat' else 'apt' if ansible_distribution == 'Ubuntu' }}"
+redis_name: "{{ 'redis' if ansible_os_family == 'RedHat' else 'redis-server' if ansible_distribution == 'Ubuntu' }}"
