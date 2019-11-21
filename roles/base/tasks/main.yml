@@ -44,22 +44,34 @@
   timezone:
     name: "{{timezone}}"
 
-- name: "{{ansible_distribution}}: change bash PS1"
-  copy:
-    content: |
-      #!/bin/bash
-      [ "$PS1" = "\\s-\\v\\\$ " ] && PS1="[\u@\H \W]\\$ "
-    dest: /etc/profile.d/ps.sh
-  when: ansible_os_family == 'RedHat'
-
 - name: "{{ ansible_distribution }}: bash customizations"
-  copy:
-    content: |
-      alias grep_whitespace="grep -v '^\s*$\|^\s*\#'"
-      PATH=$PATH:$HOME/.local/bin:$HOME/bin:$HOME/bin_public:$HOME/bin_private
-      HISTTIMEFORMAT="%Y-%m-%d %T "
-      export PATH
-    dest: /etc/profile.d/amercer.sh
+  block:
+
+    - name: "{{ansible_distribution}}: change bash PS1"
+      copy:
+        content: |
+          #!/bin/bash
+          [ "$PS1" = "\\s-\\v\\\$ " ] && PS1="[\u@\H \W]\\$ "
+        dest: /etc/profile.d/ps.sh
+
+    - name: "{{ ansible_distribution }}: custom bash aliases"
+      copy:
+        content: |
+          alias grep_whitespace="grep -v '^\s*$\|^\s*\#'"
+        dest: /etc/profile.d/aliases.sh
+
+    - name: "{{ ansible_distribution }}: configure paths"
+      copy:
+        content: |
+          PATH=$PATH:$HOME/.local/bin:$HOME/bin:$HOME/bin_public:$HOME/bin_private
+          export PATH
+        dest: /etc/profile.d/paths.sh
+
+  - name: "{{ ansible_distribution }}: configure HISTTIMEFORMAT"
+    copy:
+      content: |
+        export HISTTIMEFORMAT="%Y-%m-%d %T "
+      dest: /etc/profile.d/histtimeformat.sh
   when: ansible_os_family == 'RedHat'
 
 - name: "{{ ansible_distribution }}: vim customizations"
