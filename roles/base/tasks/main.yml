@@ -57,6 +57,7 @@
     content: |
       alias grep_whitespace="grep -v '^\s*$\|^\s*\#'"
       PATH=$PATH:$HOME/.local/bin:$HOME/bin:$HOME/bin_public:$HOME/bin_private
+      HISTTIMEFORMAT="%Y-%m-%d %T "
       export PATH
     dest: /etc/profile.d/amercer.sh
   when: ansible_os_family == 'RedHat'
