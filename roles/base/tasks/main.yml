@@ -67,11 +67,12 @@
           export PATH
         dest: /etc/profile.d/paths.sh
 
-  - name: "{{ ansible_distribution }}: configure HISTTIMEFORMAT"
-    copy:
-      content: |
-        export HISTTIMEFORMAT="%Y-%m-%d %T "
-      dest: /etc/profile.d/histtimeformat.sh
+    - name: "{{ ansible_distribution }}: configure HISTTIMEFORMAT"
+      copy:
+        content: |
+          export HISTTIMEFORMAT="%Y-%m-%d %T "
+        dest: /etc/profile.d/histtimeformat.sh
+
   when: ansible_os_family == 'RedHat'
 
 - name: "{{ ansible_distribution }}: vim customizations"
@@ -81,12 +82,22 @@
       autocmd FileType yaml setlocal et ts=2 ai sw=2
     dest: "{{ ansible_userdir }}/.vimrc"
 
+- name: "{{ ansible_distribution }}: add user to sudoers"
+  copy:
+    content: |
+      amercer	ALL=(ALL) NOPASSWD: ALL
+    dest: /etc/sudoers.d/00-amercer
+
+- name: "{{ ansible_distribution }}: add user ssh public key to authorized_keys"
+  debug:
+    msg: * * * * * TODO * * * * *
+
 - name: "{{ansible_distribution}}: install selinux packages"
   yum:
     name: "{{selinux_packages}}"
   when:
     #- ansible_selinux is defined and ansible_selinux != False and ansible_selinux.status == 'enabled'
-    - "{{ansible_selinux.status}}" == "enabled"
+    - {ansible_selinux.status == "enabled"
     - ansible_os_family == 'RedHat'
     - ansible_distribution != 'Fedora'
 
@@ -95,6 +106,6 @@
     name: "{{selinux_packages}}"
   when:
     #- ansible_selinux is defined and ansible_selinux != False and ansible_selinux.status == 'enabled'
-    - "{{ansible_selinux.status}}" == "enabled"
+    - ansible_selinux.status == "enabled"
     - ansible_distribution == 'Fedora'
 

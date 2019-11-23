@@ -1,0 +1,11 @@
+---
+
+- name: "{{ ansible_distribution }}: 2.6. Setting The $LFS Variable"
+  vars:
+    msg: |
+      Linux From Scratch - Latest Stable
+      2.6. Setting The $LFS Variable
+      http://www.linuxfromscratch.org/lfs/view/stable/chapter02/aboutlfs.html
+      {{ LFS }}
+  debug:
+    msg: "{{ msg.split('\n') }}"

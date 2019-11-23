@@ -1,0 +1,41 @@
+---
+
+- name: "{{ ansible_distribution }}: 2.4. Creating a New Partition"
+  vars:
+    msg: |
+      Linux From Scratch - Latest Stable
+      2.4. Creating a New Partition
+      http://www.linuxfromscratch.org/lfs/view/stable/chapter02/creatingpartition.html
+  debug:
+    msg: "{{ msg.split('\n') }}"
+
+- name: "{{ ansible_distribution }}: print the hostname, ip, device info and other details of the host"
+
+- name: "{{ ansible_distribution }}: confirm that you want to perform the following tasks"
+  pause:
+    prompt: 'Please confirm you want to exterminate mankind! Press return to continue. Press Ctrl+c and then "a" to abort'
+
+- name: "{{ ansible_distribution }}: the device name must be passed in --extra-vars"
+  debug:
+    msg: You must pass the device name (i.e. /dev/sdX) in --extra-vars when running this playbook
+
+- name: "{{ ansible_distribution }}: create the boot partition"
+  parted:
+    device: "{{ device }}"
+    number: 1
+    part_end: 1GiB
+    state: present
+
+- name: "{{ ansible_distribution }}: create the root partition"
+  parted:
+    device: "{{ device }}"
+    number: 2
+    part_end: 20GiB
+    state: present
+
+- name: "{{ ansible_distribution }}: create a swap partition"
+  parted:
+    device: "{{ device }}"
+    number: 3
+    part_end: 2GiB
+    state: present

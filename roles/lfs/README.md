@@ -1,3 +1,5 @@
+This role only offers the ability to install the latest and greatest LFS.
+
 TODO List:
 
 - download all packages and make it idempotent
