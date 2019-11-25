@@ -1,26 +1,44 @@
---- # http://www.linuxfromscratch.org/lfs/view/stable/chapter05/binutils-pass1.html
-## 5.4. Binutils-2.32 - Pass 1
+---
 
-- name: "{{ansible_distribution}}: check if the binutils source directory exists"
-  stat:
-    path: "{{lfs}}/sources/binutils-2.32"
-  register: binutils_dir
+- name: "{{ ansible_distribution }}: Chapter 5.4 binutils pass 1"
+  vars:
+    msg: |
+      Linux From Scratch - Latest Stable
+      Chapter 5.4. binutils pass 1
+      http://www.linuxfromscratch.org/lfs/view/stable/chapter05/binutils-pass1.html
+  debug:
+    msg: "{{ msg.split('\n') }}"
 
-- name: "{{ansible_distribution}}: unpack binutils"
+- name: "{{ ansible_distribution }}: set the binutils var"
+  shell: find "{{ lfs }}/sources" -type f -name binutils\*.tar.xz
+  register: binutils_source
+
+- name: "{{ ansible_distribution }}: output var"
+  debug:
+    msg: "{{ binutils_source.stdout }}"
+
+- name: action 2
+  vars:
+    binutils: "{{ binutils_source.stdout.split('.tar.xz')[0] }}"
+  debug:
+    msg: "{{ binutils }}"
+
+- name: "{{ ansible_distribution }}: unpack binutils"
   unarchive:
-    creates: /tools/share/info/binutils.info
-    dest: "{{lfs}}/sources"
-    src: "{{lfs}}/sources/binutils-2.32.tar.xz"
+    creates: "{{ binutils_source.stdout.split('.tar.xz')[0] }}"
+    #creates: "{{ binutils }}" # from some fucking stupid reason this var isn't getting picked up although it does above.
+    dest: "{{ lfs }}/sources"
+    remote_src: yes
+    src: "{{ binutils_source.stdout }}"
 
-- name: "{{ansible_distribution}}: create the build directory"
+- name: "{{ ansible_distribution }}: create the build directory"
   file:
-    dest: "{{lfs}}/sources/binutils-2.32/build"
+    dest: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
     state: directory
-  when: binutils_dir.stat.exists == True
 
-- name: "{{ansible_distribution}}: configure"
+- name: "{{ ansible_distribution }}: configure"
   args:
-    chdir: "{{lfs}}/sources/binutils-2.32/build"
+    chdir: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
   shell: |
     ../configure --prefix=/tools            \
                  --with-sysroot=$LFS        \
@@ -28,36 +46,36 @@
                  --target=$LFS_TGT          \
                  --disable-nls              \
                  --disable-werror
-  when: binutils_dir.stat.exists == True
+  run_once: true
 
-- name: "{{ansible_distribution}}: make"
+- name: "{{ ansible_distribution }}: make"
   make:
-    chdir: "{{lfs}}/sources/binutils-2.32/build"
+    chdir: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
     params:
       NUM_THREADS: 4
-  when: binutils_dir.stat.exists == True
+  run_once: true
 
-- name: "{{ansible_distribution}}: create symlink"
+- name: "{{ ansible_distribution }}: create symlink"
   args:
-    creates: "{{item}}"
+    creates: "{{ item }}"
   shell: |
     case $(uname -m) in
       x86_64) mkdir -v /tools/lib && ln -sv lib /tools/lib64 ;;
     esac
+  run_once: true
   with_items:
     - /tools/lib
     - /tools/lib64
 
-- name: "{{ansible_distribution}}: make install"
+- name: "{{ ansible_distribution }}: make install"
   make:
-    chdir: "{{lfs}}/sources/binutils-2.32/build"
+    chdir: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
     params:
       NUM_THREADS: 4
     target: install
-  when: binutils_dir.stat.exists == True
+  run_once: true
 
-- name: "{{ansible_distribution}}: cleanup"
+- name: "{{ ansible_distribution }}: cleanup"
   file:
-    path: "{{lfs}}/sources/binutils-2.32"
+    path: "{{ binutils_source.stdout.split('.tar.xz')[0] }}"
     state: absent
-  when: binutils_dir.stat.exists == True

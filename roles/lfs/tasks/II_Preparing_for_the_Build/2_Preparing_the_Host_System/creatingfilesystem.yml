@@ -9,19 +9,17 @@
   debug:
     msg: "{{ msg.split('\n') }}"
 
-- name: "{{ ansible_distribution }}: confirm that you want to perform the following tasks"
-
-- name: "{{ ansible_distribution }}: create a filesystem on /boot"
-  filesystem:
-    fstype: xfs
-    dev: /dev/{{ device }}1
-
 - name: "{{ ansible_distribution }}: create a filesystem on /"
   filesystem:
     fstype: xfs
-    dev: /dev/{{ device }}2
+    dev: "{{ device }}1"
 
-- name: "{{ ansible_distribution }}: create swap"
-  filesystem:
-    fstype: swap
-    dev: /dev/{{ device }}3
+#- name: "{{ ansible_distribution }}: create a filesystem on /"
+#  filesystem:
+#    fstype: xfs
+#    dev: /dev/{{ device }}2
+#
+#- name: "{{ ansible_distribution }}: create swap"
+#  filesystem:
+#    fstype: swap
+#    dev: /dev/{{ device }}3

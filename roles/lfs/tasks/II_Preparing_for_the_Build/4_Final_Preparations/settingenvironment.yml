@@ -1,5 +1,13 @@
---- # http://www.linuxfromscratch.org/lfs/view/stable/chapter04/settingenvironment.html
-## 4.4. Setting Up the Environment
+---
+
+- name: "{{ ansible_distribution }}: Chapter 4.4. Setting Up the Environment"
+  vars:
+    msg: |
+      Linux From Scratch - Latest Stable
+      Chapter 4.4. Setting Up the Environment
+      http://www.linuxfromscratch.org/lfs/view/stable/chapter04/settingenvironment.html
+  debug:
+    msg: "{{ msg.split('\n') }}"
 
 - name: "{{ansible_distribution}}: configure the lfs user bash_profile"
   copy:

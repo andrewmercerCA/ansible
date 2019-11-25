@@ -1,41 +1,82 @@
---- # http://www.linuxfromscratch.org/lfs/view/stable/chapter05/gcc-pass1.html
-## 5.5. GCC-8.2.0 - Pass 1
+---
 
-- name: "{{ansible_distribution}}: check if the gcc source directory exists"
-  stat:
-    path: "{{lfs}}/sources/gcc-8.2.0"
-  register: gcc_dir
+- name: "{{ ansible_distribution }}: Chapter 5.5. gcc pass 1"
+  vars:
+    msg: |
+      Linux From Scratch - Latest Stable
+      Chapter 5.5. gcc pass 1
+      http://www.linuxfromscratch.org/lfs/view/stable/chapter05/gcc-pass1.html
+  debug:
+    msg: "{{ msg.split('\n') }}"
 
-- name: "{{ansible_distribution}}: unpack gcc"
+- name: "{{ ansible_distribution }}: set the gcc var"
+  shell: find "{{ lfs }}/sources" -type f -name gcc\*.tar.xz
+  register: gcc_source
+
+- name: "{{ ansible_distribution }}: output gcc var"
+  debug:
+    msg: "{{ gcc_source.stdout }}"
+
+- name: action 2
+  vars:
+    gcc: "{{ gcc_source.stdout.split('.tar.xz')[0] }}"
+  debug:
+    msg: "{{ gcc }}"
+
+- name: "{{ ansible_distribution }}: unpack gcc"
   unarchive:
-    creates: "{{lfs}}/sources/gcc-8.2.0"
-    dest: "{{lfs}}/sources"
-    src: "{{lfs}}/sources/gcc-8.2.0.tar.xz"
+    creates: "{{ gcc_source.stdout.split('.tar.xz')[0] }}"
+    dest: "{{ lfs }}/sources"
+    remote_src: yes
+    src: "{{ gcc_source.stdout }}"
 
-- name: "{{ansible_distribution}}: extract mpfr, gmp and mpc"
+- name: "{{ ansible_distribution }}: set mpfr var"
+  shell: find "{{ lfs }}/sources" -type f -name mpfr\*.tar.xz
+  register: mpfr_source
+
+- name: "{{ ansible_distribution }}: output mpfr var"
+  debug:
+    msg: "{{ mpfr_source.stdout }}"
+
+- name: "{{ ansible_distribution }}: set gmp var"
+  shell: find "{{ lfs }}/sources" -type f -name gmp\*.tar.xz
+  register: gmp_source
+
+- name: "{{ ansible_distribution }}: output gmp var"
+  debug:
+    msg: "{{ gmp_source.stdout }}"
+
+- name: "{{ ansible_distribution }}: set mpc var"
+  shell: find "{{ lfs }}/sources" -type f -name mpc\*.tar.gz
+  register: mpc_source
+
+- name: "{{ ansible_distribution }}: output mpc var"
+  debug:
+    msg: "{{ mpc_source.stdout }}"
+
+- name: "{{ ansible_distribution }}: extract mpfr, gmp and mpc"
   unarchive:
-    dest: "{{lfs}}/sources/gcc-8.2.0"
-    src: "{{lfs}}/sources/{{item}}"
+    dest: "{{ gcc_source.stdout.split('.tar.xz')[0] }}"
+    remote_src: yes
+    src: "{{ item }}"
   with_items:
-    - gmp-6.1.2.tar.xz
-    - mpc-1.1.0.tar.gz
-    - mpfr-4.0.2.tar.xz
-  when: gcc_dir.stat.exists == True
+    - "{{ gmp_source.stdout }}"
+    - "{{ mpc_source.stdout }}"
+    - "{{ mpfr_source.stdout }}"
 
 - name: "{{ansible_distribution}}: rename gmp-*, mpc-* and mpfr-* directories"
   file:
-    dest: "{{lfs}}/sources/gcc-8.2.0/{{item.dest}}"
-    src: "{{lfs}}/sources/gcc-8.2.0/{{item.src}}"
+    dest: "{{ item.dest }}"
+    src: "{{ item.src }}"
     state: link
-  when: gcc_dir.stat.exists == True
   with_items:
-    - { src: 'gmp-6.1.2', dest: 'gmp' }
-    - { src: 'mpc-1.1.0', dest: 'mpc' }
-    - { src: 'mpfr-4.0.2', dest: 'mpfr' }
+    - { src: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/gmp-6.1.2", dest: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/gmp" }
+    - { src: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/mpc-1.1.0", dest: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/mpc" }
+    - { src: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/mpfr-4.0.2", dest: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/mpfr" }
 
-- name: "{{ansible_distribution}}: change the location of GCC's default dynamic linker to use the one installed in /tools"
+- name: "{{ ansible_distribution }}: change the location of GCC's default dynamic linker to use the one installed in /tools"
   args:
-    chdir: "{{lfs}}/sources/gcc-8.2.0"
+    chdir: "{{ gcc_source.stdout.split('.tar.xz')[0] }}"
   shell: |
     for file in gcc/config/{linux,i386/linux{,64}}.h
     do
@@ -49,11 +90,10 @@
     #define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
       touch $file.orig
     done
-  when: gcc_dir.stat.exists == True
 
-- name: "{{ansible_distribution}}: set the default directory name for 64-bit libraries to lib"
+- name: "{{ ansible_distribution }}: set the default directory name for 64-bit libraries to lib"
   args:
-    chdir: "{{lfs}}/sources/gcc-8.2.0"
+    chdir: "{{ gcc_source.stdout.split('.tar.xz')[0] }}"
   shell: |
     case $(uname -m) in
       x86_64)
@@ -61,17 +101,15 @@
             -i.orig gcc/config/i386/t-linux64
      ;;
     esac
-  when: gcc_dir.stat.exists == True
 
-- name: "{{ansible_distribution}}: create the build directory"
+- name: "{{ ansible_distribution }}: create the build directory"
   file:
-    dest: "{{lfs}}/sources/gcc-8.2.0/build"
+    dest: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/build"
     state: directory
-  when: gcc_dir.stat.exists == True
 
 - name: "{{ansible_distribution}}: configure"
   args: 
-    chdir: "{{lfs}}/sources/gcc-8.2.0/build"
+    chdir: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/build"
   shell: |
     ../configure                                       \
         --target=$LFS_TGT                              \
@@ -95,26 +133,21 @@
         --disable-libvtv                               \
         --disable-libstdcxx                            \
         --enable-languages=c,c++
-  when: gcc_dir.stat.exists == True
-
 
 - name: "{{ansible_distribution}}: make"
   make:
-    chdir: "{{lfs}}/sources/gcc-8.2.0/build"
+    chdir: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/build"
     params:
       NUM_THREADS: 4
-  when: gcc_dir.stat.exists == True
 
 - name: "{{ansible_distribution}}: make install"
   make:
-    chdir: "{{lfs}}/sources/gcc-8.2.0/build"
+    chdir: "{{ gcc_source.stdout.split('.tar.xz')[0] }}/build"
     params:
       NUM_THREADS: 4
     target: install
-  when: gcc_dir.stat.exists == True
 
 - name: "{{ansible_distribution}}: cleanup"
   file:
-    path: "{{lfs}}/sources/gcc-8.2.0"
+    path: "{{ gcc_source.stdout.split('.tar.xz')[0] }}"
     state: absent
-  when: gcc_dir.stat.exists == True

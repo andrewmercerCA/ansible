@@ -1,5 +1,10 @@
 ---
 
-- name: "{{ ansible_distribution }}: 5.1. Introduction"
+- name: "{{ ansible_distribution }}: Chapter 5.1. Introduction"
+  vars:
+    msg: |
+      Linux From Scratch - Latest Stable
+      Chapter Chapter 5.1. Introduction
+      http://www.linuxfromscratch.org/lfs/view/stable/chapter05/introduction.html
   debug:
-    msg: 5.1. Introduction
+    msg: "{{ msg.split('\n') }}"

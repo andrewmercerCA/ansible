@@ -10,20 +10,23 @@
   debug:
     msg: "{{ msg.split('\n') }}"
 
-#- name: "{{ ansible_distribution }}: 2.1. Introduction"
-#  include: introduction.yml
-#
-#- name: "{{ ansible_distribution }}: 2.2. Host System Requirements"
-#  include: hostreqs.yml
-#
-#- name: "{{ ansible_distribution }}: 2.3 Building LFS in Stages"
-#  include: stages.yml
-#
-#- name: "{{ ansible_distribution }}: 2.4 Creating a New Partition"
-#  include: creatingpartition.yml
-#
-#- name: "{{ ansible_distribution }}: 2.5 Creating a File System on the Partition"
-#  include: creatingfilesystem.yml
+- name: "{{ ansible_distribution }}: 2.1. Introduction"
+  include: introduction.yml
+
+- name: "{{ ansible_distribution }}: 2.2. Host System Requirements"
+  include: hostreqs.yml
+
+- name: "{{ ansible_distribution }}: 2.3 Building LFS in Stages"
+  include: stages.yml
+
+- name: "{{ ansible_distribution }}: 2.4 Creating a New Partition"
+  include: creatingpartition.yml
+
+- name: "{{ ansible_distribution }}: 2.5 Creating a File System on the Partition"
+  include: creatingfilesystem.yml
 
 - name: "{{ ansible_distribution }}: 2.6. Setting The $LFS Variable"
   include: aboutlfs.yml
+
+- name: "{{ ansible_distribution }}: 2.7. Mounting the New Partition"
+  include: mounting.yml

@@ -1,6 +1,10 @@
---- # http://www.linuxfromscratch.org/lfs/view/stable/chapter04/introduction.html
-## 4.1. Introduction
+---
 
-- name: "{{ ansible_distribution }}: 4.1. Introduction"
+- name: "{{ ansible_distribution }}: Chapter 4.1. Introduction"
+  vars:
+    msg: |
+      Linux From Scratch - Latest Stable
+      Chapter 4.1. Introduction
+      http://www.linuxfromscratch.org/lfs/view/stable/chapter04/introduction.html
   debug:
-    msg: 4.1. Introduction
+    msg: "{{ msg.split('\n') }}"
