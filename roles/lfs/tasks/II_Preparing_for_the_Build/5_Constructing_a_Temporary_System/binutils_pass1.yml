@@ -31,51 +31,47 @@
     remote_src: yes
     src: "{{ binutils_source.stdout }}"
 
-- name: "{{ ansible_distribution }}: create the build directory"
-  file:
-    dest: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
-    state: directory
-
-- name: "{{ ansible_distribution }}: configure"
-  args:
-    chdir: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
-  shell: |
-    ../configure --prefix=/tools            \
-                 --with-sysroot=$LFS        \
-                 --with-lib-path=/tools/lib \
-                 --target=$LFS_TGT          \
-                 --disable-nls              \
-                 --disable-werror
-  run_once: true
-
-- name: "{{ ansible_distribution }}: make"
-  make:
-    chdir: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
-    params:
-      NUM_THREADS: 4
-  run_once: true
-
-- name: "{{ ansible_distribution }}: create symlink"
-  args:
-    creates: "{{ item }}"
-  shell: |
-    case $(uname -m) in
-      x86_64) mkdir -v /tools/lib && ln -sv lib /tools/lib64 ;;
-    esac
-  run_once: true
-  with_items:
-    - /tools/lib
-    - /tools/lib64
-
-- name: "{{ ansible_distribution }}: make install"
-  make:
-    chdir: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
-    params:
-      NUM_THREADS: 4
-    target: install
-  run_once: true
-
-- name: "{{ ansible_distribution }}: cleanup"
-  file:
-    path: "{{ binutils_source.stdout.split('.tar.xz')[0] }}"
-    state: absent
+#- name: "{{ ansible_distribution }}: create the build directory"
+#  file:
+#    dest: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
+#    state: directory
+#
+#- name: "{{ ansible_distribution }}: configure"
+#  args:
+#    chdir: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
+#  shell: |
+#    ../configure --prefix=/tools            \
+#                 --with-sysroot=$LFS        \
+#                 --with-lib-path=/tools/lib \
+#                 --target=$LFS_TGT          \
+#                 --disable-nls              \
+#                 --disable-werror
+#
+#- name: "{{ ansible_distribution }}: make"
+#  make:
+#    chdir: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
+#    params:
+#      NUM_THREADS: 4
+#
+#- name: "{{ ansible_distribution }}: create symlink"
+#  args:
+#    creates: "{{ item }}"
+#  shell: |
+#    case $(uname -m) in
+#      x86_64) mkdir -v /tools/lib && ln -sv lib /tools/lib64 ;;
+#    esac
+#  with_items:
+#    - /tools/lib
+#    - /tools/lib64
+#
+#- name: "{{ ansible_distribution }}: make install"
+#  make:
+#    chdir: "{{ binutils_source.stdout.split('.tar.xz')[0] }}/build"
+#    params:
+#      NUM_THREADS: 4
+#    target: install
+#
+#- name: "{{ ansible_distribution }}: cleanup"
+#  file:
+#    path: "{{ binutils_source.stdout.split('.tar.xz')[0] }}"
+#    state: absent

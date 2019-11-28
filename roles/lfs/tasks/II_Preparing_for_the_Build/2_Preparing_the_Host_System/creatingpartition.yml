@@ -57,17 +57,3 @@
     device: "{{ device }}"
     number: 1
     state: present
-
-#- name: "{{ ansible_distribution }}: create the root partition"
-#  parted:
-#    device: "{{ device }}"
-#    number: 2
-#    part_end: 20GiB
-#    state: present
-#
-#- name: "{{ ansible_distribution }}: create a swap partition"
-#  parted:
-#    device: "{{ device }}"
-#    number: 3
-#    part_end: 2GiB
-#    state: present

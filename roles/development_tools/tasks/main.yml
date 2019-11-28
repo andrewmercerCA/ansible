@@ -1,11 +1,13 @@
 ---
 
 - name: "{{ansible_distribution}}: install development tools"
-  shell: dnf -y groupinstall "Development Tools"
+  dnf:
+    name: '@Development Tools'
   when: ansible_distribution == 'Fedora'
 
 - name: "{{ansible_distribution}}: install development libraries"
-  shell: dnf -y groupinstall "Development Libraries"
+  dnf:
+    name: '@Development Libraries'
   when: ansible_distribution == 'Fedora'
 
 - name: "{{ansible_distribution}}: install autoconf automake"
@@ -13,6 +15,7 @@
     name:
       - autoconf
       - automake
+      - bison
       - libtool
   when: ansible_distribution == 'Fedora'
 

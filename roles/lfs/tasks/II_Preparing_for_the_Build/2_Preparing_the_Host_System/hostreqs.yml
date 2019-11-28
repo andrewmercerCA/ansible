@@ -35,6 +35,13 @@
 
   when: ansible_os_family == 'RedHat'
 
+- name: "{{ ansible_distribution }}: 2.2. Host System Requirements"
+  block:
+    - name: "{{ ansible_distribution }}: install extra required packages"
+      dnf:
+        name: gcc-c++
+  when: ansible_distribution == 'Fedora'
+
 - name: "{{ ansible_distribution }}: check that the required tools are installed and at appropriate versions"
   vars:
     check_script: |

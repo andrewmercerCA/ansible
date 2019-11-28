@@ -18,15 +18,15 @@
 - name: "{{ansible_distribution}}: 5.3. General Compilation Instructions"
   include: generalinstructions.yml
 
-#- name: "{{ansible_distribution}}: 5.4. binutils - Pass 1"
-#  become: true
-#  become_user: lfs
-#  include: binutils_pass1.yml
-
-- name: "{{ansible_distribution}}: 5.5. GCC-8.2.0 - Pass 1"
+- name: "{{ansible_distribution}}: 5.4. binutils - Pass 1"
   become: true
   become_user: lfs
-  include: gcc_pass1.yml
+  include: binutils_pass1.yml
+
+#- name: "{{ansible_distribution}}: 5.5. GCC-8.2.0 - Pass 1"
+#  become: true
+#  become_user: lfs
+#  include: gcc_pass1.yml
 
 #- name: "{{ansible_distribution}}: 5.6. Linux-4.20.12 API Headers"
 #  include: linux_headers.yml

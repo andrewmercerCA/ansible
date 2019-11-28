@@ -1,1 +1,3 @@
 lfs: /mnt/lfs
+#fs: xfs
+fs: ext4

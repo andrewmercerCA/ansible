@@ -11,12 +11,12 @@
 
 - name: "{{ ansible_distribution }}: create a filesystem on /"
   filesystem:
-    fstype: xfs
+    fstype: "{{ fs }}" 
     dev: "{{ device }}1"
 
 #- name: "{{ ansible_distribution }}: create a filesystem on /"
 #  filesystem:
-#    fstype: xfs
+#    fstype: "{{ fs }}"
 #    dev: /dev/{{ device }}2
 #
 #- name: "{{ ansible_distribution }}: create swap"
