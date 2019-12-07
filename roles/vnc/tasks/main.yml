@@ -1,3 +1,14 @@
 --- # https://vitux.com/centos-vnc-server
 
+- name: "{{ ansible_distribution }}: install xfce desktop environment"
+  yum:
+    name: "@Xfce"
+  when:
+    - ansible_distribution != 'Amazon'
+    - ansible_distribution != 'Fedora'
+    - ansible_os_family == 'RedHat'
 
+- name: "{{ ansible_distribution }}: install epel-release"
+  dnf:
+    name: "@xfce"
+  when: ansible_distribution == 'Fedora'

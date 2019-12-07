@@ -88,10 +88,6 @@
       amercer	ALL=(ALL) NOPASSWD: ALL
     dest: /etc/sudoers.d/00-amercer
 
-- name: "{{ ansible_distribution }}: add user ssh public key to authorized_keys"
-  debug:
-    msg: * * * * * TODO * * * * *
-
 - name: "{{ansible_distribution}}: install selinux packages"
   yum:
     name: "{{selinux_packages}}"
