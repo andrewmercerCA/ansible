@@ -93,7 +93,7 @@
     name: "{{selinux_packages}}"
   when:
     #- ansible_selinux is defined and ansible_selinux != False and ansible_selinux.status == 'enabled'
-    - {ansible_selinux.status == "enabled"
+    - ansible_selinux.status == "enabled"
     - ansible_os_family == 'RedHat'
     - ansible_distribution != 'Fedora'
 
