@@ -80,7 +80,7 @@
     content: |
       filetype indent off
       autocmd FileType yaml setlocal et ts=2 ai sw=2
-    dest: "{{ ansible_userdir }}/.vimrc"
+    dest: "/home/{{ ansible_env.SUDO_USER }}/.vimrc"
 
 - name: "{{ ansible_distribution }}: add user to sudoers"
   copy:

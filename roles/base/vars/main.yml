@@ -18,4 +18,4 @@ selinux_packages:
   - selinux-policy-targeted
   - setroubleshoot-server
 
-timezone: America/Toronto
+timezone: "America/Toronto"
