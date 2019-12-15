@@ -3,3 +3,9 @@
   service:
     name: httpd
     state: restarted
+
+- name: restart-network
+  service:
+    name: network
+    state: restarted
+  listen: restart-network
