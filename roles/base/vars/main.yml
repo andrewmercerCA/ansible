@@ -3,7 +3,9 @@ base_packages:
   - bind-utils
   - curl
   - git
-  - libselinux-python
+  # RHEL 8 this package does not exist.
+  # Need to separate out 7 and 8 if I want to include it.
+  #- libselinux-python
   - openssl
   - redhat-rpm-config
   - strace
