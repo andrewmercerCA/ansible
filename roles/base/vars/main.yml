@@ -1,5 +1,6 @@
 # RHEL 8 has renamed most if not all the selinux packags.
 # Need to separate out 7 and 8 if I want to use 8 and selinux.
+# Check out ~/ansible/group_vars for an idea of how to seperate them out.
 base_packages:
   - bash-completion
   - bind-utils

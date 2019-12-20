@@ -45,7 +45,7 @@
 - name: "{{ansible_distribution}}: clone the awx repo"
   git:
     clone: yes
-    dest: /tmp
+    dest: /tmp/awx
     repo: https://github.com/ansible/awx
   when: uninstall != 'True'
 
