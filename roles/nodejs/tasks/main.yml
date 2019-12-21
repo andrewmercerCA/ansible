@@ -2,8 +2,19 @@
 
 - name: "{{ ansible_distribution }}: download binary"
   get_url:
-    dest: "/tmp/node-v{{ nodejs_version }}-linux-x64.tar.xz"
-    url: "https://nodejs.org/dist/v{{ nodejs_version }}/node-v{{ nodejs_version }}-linux-x64.tar.xz"
+    dest: /tmp/node-v{{ nodejs_version }}-linux-x64.tar.xz
+    url: https://nodejs.org/dist/v{{ nodejs_version }}/node-v{{ nodejs_version }}-linux-x64.tar.xz
+
+- name: "{{ ansible_distribution }}: unpack and install binary"
+  unarchive:
+    src: /tmp/node-v{{ nodejs_version }}-linux-x64.tar.xz
+    dest: /usr/local/bin
+
+- name: "{{ ansible_distribution }}: create symlink to binary"
+  file:
+    dest: /usr/local/bin/node
+    src: /usr/local/bin/node-v{{ node_version }}-linux-x64/bin/node
+    state: link
 
 #- name: "{{ansible_distribution}}: install node.js yum repository"
 #  shell: curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
