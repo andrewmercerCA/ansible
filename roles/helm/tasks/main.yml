@@ -1,7 +1,5 @@
 ---
 
-helm_version: 3.0.2
-
 - name: "{{ ansible_distribution }}: download helm binary"
   get_url:
     url: https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz
