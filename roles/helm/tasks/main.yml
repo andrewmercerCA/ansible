@@ -1,0 +1,19 @@
+---
+
+helm_version: 3.0.2
+
+- name: "{{ ansible_distribution }}: download helm binary"
+  get_url:
+    url: https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz
+    dest: /tmp/helm-v{{ helm_version }}-linux-amd64.tar.gz
+
+- name: "{{ ansible_distribution }}: unpack and install binary"
+  unarchive:
+    src: /tmp/helm-v{{ helm_version }}-linux-amd64.tar.gz
+    dest: /usr/local/bin
+
+- name: "{{ ansible_distribution }}: create symlink to binary"
+  file:
+    src: /usr/local/bin/linux-amd64/helm
+    dest: /usr/local/bin/helm
+    state: link

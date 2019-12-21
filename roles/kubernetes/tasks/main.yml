@@ -1,5 +1,10 @@
 ---
 
+- name: "{{ ansible_distribution }}: enable br_netfilter linux module"
+  modprobe:
+    name: br_netfilter
+    state: present
+
 - name: "{{ ansible_distribution }}: turn on bridge-nf-call-iptables"
   shell: echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
 #  sysctl:
@@ -37,13 +42,13 @@
     state: restarted
 #####
 
-- name: "{{ ansible_distribution }}: verify that docker is using systemd driver"
-  shell: docker info --format '{{json .CgroupDriver}}'
-  register: docker_driver
-
-- name: "{{ ansible_distribution }}: output docker_driver"
-  debug:
-    msg: "{{ docker_driver }}"
+#- name: "{{ ansible_distribution }}: verify that docker is using systemd driver"
+#  shell: docker info --format '{{json .CgroupDriver}}'
+#  register: docker_driver
+#
+#- name: "{{ ansible_distribution }}: output docker_driver"
+#  debug:
+#    msg: "{{ docker_driver }}"
 
 - name: "{{ ansible_distribution }}: create kubernetes repo file"
   copy:
