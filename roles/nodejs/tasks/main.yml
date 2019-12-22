@@ -13,13 +13,13 @@
 - name: "{{ ansible_distribution }}: create symlink to nodejs binary"
   file:
     dest: /usr/local/bin/node
-    src: /usr/local/bin/node-v{{ node_version }}-linux-x64/bin/node
+    src: /usr/local/bin/node-v{{ nodejs_version }}-linux-x64/bin/node
     state: link
 
 - name: "{{ ansible_distribution }}: create symlink to npm binary"
   file:
     dest: /usr/local/bin/npm
-    src: /usr/local/bin/node-v{{ node_version }}-linux-x64/bin/npm
+    src: /usr/local/bin/node-v{{ nodejs_version }}-linux-x64/bin/npm
     state: link
 
 #- name: "{{ansible_distribution}}: install node.js yum repository"
