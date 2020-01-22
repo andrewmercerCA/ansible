@@ -1,0 +1,6 @@
+# Ansible facts need to be in either INI or JSON format
+# ANSIBLE_CONFIG=~/ansible/ansible.cfg ansible localhost -m setup -a "filter=ansible_local" -a "fact_path=~/ansible/facts.d" | grep -i asdf
+# (fact_path defined in ~/ansible/ansible.cfg doesn't work, but specifying on the command-line does)
+[general]
+asdf=1
+bar=2

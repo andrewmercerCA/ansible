@@ -1,0 +1,21 @@
+---
+
+- hosts: localhost
+  
+  tasks:
+    - name: get file
+      block:
+      # Since I'm using virtualenv, I had to run
+      # pip install selinux
+      # Otherwise I got the error:
+      # fatal: [localhost]: FAILED! => {"changed": false, "msg": "Aborting, target uses selinux but python bindings (libselinux-python) aren't installed!"}
+        - name: get file in block
+          get_url:
+            dest: /tmp/lab_ks.cfg
+            url: "http://localhost:8000/lab_ks.fg"
+      rescue:
+        - debug:
+           msg: "the file doesn't exist"
+      always:
+        - debug:
+            msg: "Play has completed."

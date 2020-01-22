@@ -1,0 +1,19 @@
+---
+
+- name: "{{ ansible_distribution }}: download the source tarball"
+  get_url:
+    dest: /tmp/android_studio.tar.gz
+    url: "{{ source_url }}"
+
+- name: "{{ ansible_distribution }}: unpack the source tarball"
+  unarchive:
+    dest: "{{ tarball_dest }}"
+    src: /tmp/android_studio.tar.gz
+
+- name: "{{ ansible_distribution }}: create symlink of studio.sh in root of ~/.local/bin"
+  file:
+    dest: "{{ link_dest }}"
+    src: "{{ link_src }}"
+    state: link
+    owner: "{{ user }}"
+    group: "{{ group }}"

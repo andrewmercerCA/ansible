@@ -1,0 +1,38 @@
+---
+
+# https://serverfault.com/questions/615132/accessing-hostvars-for-a-host-group-in-ansible
+- name: populate hosts file
+  hosts: ansible_nodes
+  gather_facts: true
+
+  tasks:
+    - name: populate hosts file with nodes in ansible_nodes inventory group
+      lineinfile:
+        dest: /etc/hosts
+        #line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ hostvars[item].ansible_hostname }}"
+        line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ hostvars[item].ansible_hostname }}"
+
+#- name: "{{ ansible_distribution }}: populate an /etc/hosts file from ansible hosts file"
+#
+#  hosts: ansible_nodes
+#  gather_facts: True
+#
+#  tasks:
+#    - name: get facts
+#      debug:
+#        msg: "{{ item }}"
+#      with_items: "{{ groups.ansible_nodes }}"
+#      
+#    - name: install hosts file template
+#      lineinfile:
+#        path: /etc/hosts
+#      #  #regexp: '.*{{ item }}$'
+#      #  #line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ item }}"
+#        #line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ hostvars[item].ansible_hostname }}"
+#        line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ hostvars[item].ansible_hostname }}"
+#        state: present
+#      with_items: "{{ groups['ansible_nodes'] }}"
+#      #template:
+#      #  dest: /etc/hosts
+#      #  src: templates/hosts.j2
+#      #with_items: "{{ groups.ansible_nodes }}"

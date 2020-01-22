@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - ansible_vault_example
+  # post_tasks: 
+  # tags:

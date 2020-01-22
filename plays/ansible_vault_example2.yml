@@ -1,0 +1,18 @@
+--- # https://linuxacademy.com/cp/courses/lesson/course/2033/lesson/2/module/198
+
+# cd ~/ansible/plays
+# echo '[ some_password ]' > /tmp/vault0_pass.txt
+# echo "message: I am the walrus" > vars/secure
+# ansible-vault encrypt --vault-id prod@/tmp/vault0_pass.txt vars/secure
+# notice the difference between "--encrypt-vault-id" and just "--vault-id" in example 1 & 2
+
+- name: vault practice
+  hosts: localhost
+
+  vars_files:
+    - vars/secure
+
+  tasks:
+    - name: output message
+      shell: echo "{{ message }}" > /tmp/deployed.txt
+      no_log: true

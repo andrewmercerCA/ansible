@@ -1,0 +1,5 @@
+---
+tarball_dest: /home/{{ user }}/.local/bin
+link_dest: /home/{{ user }}/.local/bin/studio.sh
+link_src: /home/{{ user }}/.local/android-studio/bin/studio.sh
+source_url: https://dl.google.com/dl/android/studio/ide-zips/3.5.3.0/android-studio-ide-191.6010548-linux.tar.gz

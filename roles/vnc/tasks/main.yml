@@ -1,14 +1,88 @@
 --- # https://vitux.com/centos-vnc-server
 
-- name: "{{ ansible_distribution }}: install xfce desktop environment"
-  yum:
-    name: "@Xfce"
+- name: centos prereq block
+  block:
+
+    - name: "{{ ansible_distribution }}: install xfce desktop environment"
+      yum:
+        name: "@Xfce"
+
+    - name: "{{ ansible_distribution }}: install tigervnc"
+      yum:
+        name:
+          - tigervnc-server
+          - tigervnc-server-minimal
+
   when:
     - ansible_distribution != 'Amazon'
     - ansible_distribution != 'Fedora'
     - ansible_os_family == 'RedHat'
 
-- name: "{{ ansible_distribution }}: install epel-release"
-  dnf:
-    name: "@xfce"
+- name: fedora prereq block
+  block:
+    - name: "{{ ansible_distribution }}: install epel-release"
+      dnf:
+        name: "@xfce"
+
+    - name: "{{ ansible_distribution }}: install tigervnc"
+      dnf:
+        name:
+          - tigervnc-server
+          - tigervnc-server-minimal
+
   when: ansible_distribution == 'Fedora'
+
+- name: vnc configuration block
+  block:
+    #- name: "{{ ansible_distribution }}: generate the vnc configuration for specified user"
+    # Step 3
+    # TODO
+    # vncserver
+    #
+    - name: "{{ ansible_distribution }}: make sure TigerVNC is not running"
+      shell: vncserver -kill :1
+      ignore_errors: true
+
+    - name: "{{ ansible_distribution }}: configure xstartup"
+      copy:
+        backup: yes
+        content: |
+          #!/bin/bash
+          xrdb $HOME/.Xresources
+          startxfce4 &
+        dest: /home/{{ user }}/.vnc/xstartup
+        mode: u+rwx,g+rx,o+rx
+
+    - name: "{{ ansible_distribution }}: configure .Xresources" 
+      copy:
+        dest: /home/{{ user }}/.Xresources
+        src: /etc/X11/Xresources
+
+    - name: "{{ ansible_distribution }}: configure TigerVNC systemd service" 
+      copy:
+        content: |
+          [Unit]
+          Description=Remote desktop service (VNC)
+          After=syslog.target network.target
+
+          [Service]
+          Type=forking
+          User={{ user }}
+          PIDFile=/home/{{ user }}/.vnc/%H:%i.pid
+          ExecStartPre=-/usr/bin/vncserver -kill :%i > /dev/null 2>&1
+          ExecStart=/usr/bin/vncserver -depth 24 -geometry 1280x800 :%i
+          ExecStop=/usr/bin/vncserver -kill :%i
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/tigervnc@.service
+      notify: "reload systemd"
+
+    - name: "{{ ansible_distribution }}: start TigerVNC systemd service" 
+      service:
+        name: tigervnc@{{ ansible_hostname }}.service
+        state: started
+
+    - name: create a tunnel between your localhost and the VNC server
+      debug:
+        msg: ssh -L 5901:127.0.0.1:5901 -N -f -l "{{ user }}" [ vnc_server ]

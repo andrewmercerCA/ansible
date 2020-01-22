@@ -1,0 +1,38 @@
+---
+
+# cat <<EOF > ./users.lst
+#staff:
+#  - joe
+#  - john
+#  - bob
+#  - sam
+#  - mark
+#faculty:
+#  - matt
+#  - alex
+#  - frank
+#other:
+#  - will
+#  - jack
+# EOF
+# ansible-playbook -i ../inventory/hosts.ini users.yml -e "@users.lst"
+
+- hosts: ansible_nodes
+  #dependencies:
+  #  - role: base
+  vars:
+    userFile: /tmp/list
+  tasks:
+    - name: create file
+      file:
+        state: touch
+        path: "{{ userFile }}"
+
+    - name: list users
+      lineinfile:
+        path: "{{ userFile }}"
+        line: "{{ item }}"
+      with_items:
+        - "{{ staff }}"
+        - "{{ faculty }}"
+        - "{{ other }}"

@@ -1,0 +1,14 @@
+---
+
+- name: "{{ ansible_distribution }}: install postgresql"
+  yum:
+    name: postgresql-server
+
+- name: "{{ ansible_distribution }}: postgresql initdb"
+  shell: postgresql-setup initdb
+
+- name: "{{ ansible_distribution }}: start and enable postgresql"
+  service:
+    enabled: true
+    name: postgresql.service
+    state: started

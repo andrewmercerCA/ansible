@@ -1,0 +1,6 @@
+ansible_user: amercer
+# ansible all -i ~/ansible/inventory/hosts.ini -a 'ls -la {{ opt_dir }}'
+opt_dir: /opt
+# ansible all -i ~/ansible/inventory/hosts.ini -a 'ls -la {{ logs }}'
+# ansible --become all -i ~/ansible/inventory/hosts.ini -a 'tail {{ logs }}'
+logs: /var/log/messages

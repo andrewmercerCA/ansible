@@ -81,17 +81,17 @@
       filetype indent off
       autocmd FileType yaml setlocal et ts=2 ai sw=2
     #dest: "/home/{{ ansible_env.SUDO_USER }}/.vimrc"
-    dest: "/home/amercer/.vimrc"
+    dest: "/home/{{ user }}/.vimrc"
 
 - name: "{{ ansible_distribution }}: add user to sudoers"
   copy:
     content: |
-      amercer	ALL=(ALL) NOPASSWD: ALL
-    dest: /etc/sudoers.d/00-amercer
+      "{{ user }}" ALL=(ALL) NOPASSWD: ALL
+    dest: /etc/sudoers.d/00-{{ user }}
 
-- name: "{{ansible_distribution}}: install selinux packages"
+- name: "{{ ansible_distribution }}: install selinux packages"
   yum:
-    name: "{{selinux_packages}}"
+    name: "{{ selinux_packages }}"
   when:
     #- ansible_selinux is defined and ansible_selinux != False and ansible_selinux.status == 'enabled'
     - ansible_selinux.status == "enabled"

@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - kubernetes_aks
+  # post_tasks: 
+  # tags:

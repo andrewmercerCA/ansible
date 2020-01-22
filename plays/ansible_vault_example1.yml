@@ -1,0 +1,31 @@
+---
+# literally just going through this document step by step
+# https://learn.redhat.com/t5/Automation-Management-Ansible/Vault-IDs-in-Ansible-2-4/td-p/1531
+# Steps:
+# echo 'course: DO457' > vars/vars.yml
+# echo 'password' > /tmp/password
+# echo 'PASSWORD' > /tmp/PASSWORD
+### make sure this line doesn't already exist from previous actions
+# echo 'vault_identity_list = inline@/tmp/password,files@/tmp/PASSWORD' >> ~/ansible/ansible.cfg
+# ANSIBLE_CONFIG=~/ansible/ansible.cfg ansible-vault encrypt --encrypt-vault-id files vars/vars.yml
+# ANSIBLE_CONFIG=~/ansible/ansible.cfg ansible-vault encrypt_string --encrypt-vault-id inline -n testing this-is-the-secret
+### notice the difference between "--encrypt-vault-id" and just "--vault-id" in example 1 & 2
+
+- name: learning vault ids
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - vars/vault_vars.yml
+  vars:
+    testing: !vault |
+          $ANSIBLE_VAULT;1.2;AES256;inline
+          66313132303165373730383236623862303638383662613361633433393061663733316262653965
+          3135326262326631396462623464323132663464633165650a626633646437643730393335623533
+          64666363326666643739326361373137353031393730396163366263346530636162343938333837
+          6366636230393439640a323434643264323664313334663562376438313661633866366463316430
+          65623337323533323738356363663637626161373533666436396365616562316338
+
+  tasks:
+    - name: output
+      debug:
+        msg: Inline text is "{{ testing }}" for course "{{ course }}".

@@ -1,0 +1,32 @@
+---
+
+## Online resources
+# https://www.edureka.co/blog/ansible-vault-secure-secrets
+# https://learn.redhat.com/t5/Automation-Management-Ansible/Vault-IDs-in-Ansible-2-4/td-p/1531
+
+## New way
+# cd ~/ansible/roles/ansible_vault_example
+# ansible-vault create vars/vault0.yml
+# ansible-vault create vars/vault1.yml
+# echo '[ vault0_password ]' > ~/vault0_pass.txt
+# echo '[ vault1_password ]' > ~/vault1_pass.txt
+# ansible-playbook --extra-vars="target=localhost" ~/ansible/ansible_vault_example.yml --vault-id ~/vault0_pass.txt --vault-id ~/vault1_pass.txt
+
+# https://docs.ansible.com/ansible/latest/modules/include_vars_module.html
+- include_vars:
+    dir: vars
+    #depth: 1
+
+# 
+- name: output contents of vault0 which is the variable "celly" encrypted by password in vault0_pass.txt
+  debug:
+    msg: "{{ celly }}"
+
+- name: output contents of vault1 which is the variable "chant" encrypted by password in vault1_pass.txt
+  debug:
+    msg: "{{ chant }}"
+
+## Basic (phased out) usage
+# ansible-playbook --extra-vars="target=localhost" ~/ansible/ansible_vault_example.yml --ask-vault-pass
+# echo '[ vault_password ]' > ~/vault_pass.txt
+# ansible-playbook --extra-vars="target=localhost" ~/ansible/ansible_vault_example.yml --vault-password-file ~/vault_pass.txt

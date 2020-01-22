@@ -1,0 +1,9 @@
+---
+
+- name: print configuration values
+  hosts: localhost
+
+  tasks:
+    - name: print
+      debug:
+        msg: "{{ lookup('config', 'FACTS_DIR') }}"
