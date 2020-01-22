@@ -1,14 +1,41 @@
 ---
 
-- name: "{{ ansible_distribution }}: install postgresql"
-  yum:
-    name: postgresql-server
+- name: "{{ ansible_distribution }}: default centos repos block"
+  block:
 
-- name: "{{ ansible_distribution }}: postgresql initdb"
-  shell: postgresql-setup initdb
+    - name: "{{ ansible_distribution }}: install postgresql"
+      yum:
+        name: postgresql-server
 
-- name: "{{ ansible_distribution }}: start and enable postgresql"
-  service:
-    enabled: true
-    name: postgresql.service
-    state: started
+    - name: "{{ ansible_distribution }}: postgresql initdb"
+      shell: postgresql-setup initdb
+
+    - name: "{{ ansible_distribution }}: start and enable postgresql"
+      service:
+        enabled: true
+        name: postgresql.service
+        state: started
+  when: "{{ repo }}" == 'default'
+
+- name: "{{ ansible_distribution }}: postgres repos block"
+  block:
+
+    - name: "{{ ansible_distribution }}: install postgres repo"
+      yum:
+        name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+    - name: "{{ ansible_distribution }}: install postgresql"
+      yum:
+        name:
+          - postgresql12
+          - postgresql12-server
+
+    - name: "{{ ansible_distribution }}: postgres initdb"
+      shell: /usr/pgsql-12/bin/postgresql-12-setup initdb
+
+    - name: "{{ ansible_distribution }}: start and enable postgresql service"
+      service:
+        enabled: true
+        name: postgresql-12
+        state: started
+  when: "{{ repo }}" == 'postgres'
