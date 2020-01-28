@@ -57,6 +57,7 @@
     - name: "{{ ansible_distribution }}: custom bash aliases"
       copy:
         content: |
+          alias cp_backup="cp -f --backup --suffix='.copy'"
           alias grep_whitespace="grep -v '^\s*$\|^\s*\#'"
         dest: /etc/profile.d/aliases.sh
 

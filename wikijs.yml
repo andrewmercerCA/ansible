@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - wikijs
+  # post_tasks: 
+  # tags:

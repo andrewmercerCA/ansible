@@ -15,7 +15,7 @@
         enabled: true
         name: postgresql.service
         state: started
-  when: "{{ repo }}" == 'default'
+  when: repo == "default"
 
 - name: "{{ ansible_distribution }}: postgres repos block"
   block:
@@ -30,6 +30,12 @@
           - postgresql12
           - postgresql12-server
 
+    - name: "{{ ansible_distribution }}: symlink to /usr/bin/psql"
+      file:
+        dest: /usr/bin/psql
+        src: /usr/pgsql-12/bin/psql
+        state: link
+
     - name: "{{ ansible_distribution }}: postgres initdb"
       shell: /usr/pgsql-12/bin/postgresql-12-setup initdb
 
@@ -38,4 +44,11 @@
         enabled: true
         name: postgresql-12
         state: started
-  when: "{{ repo }}" == 'postgres'
+
+    #- name: "{{ ansible_distribution }}: allow connections on localhost"
+    #  lineinfile:
+    #    line: 
+    #    path: /var/lib/pgsql/12/data/pg_hba.conf
+    #  notify: restart-pgsql
+
+  when: repo == "postgres"

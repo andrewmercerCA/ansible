@@ -1,0 +1,13 @@
+---
+
+- name: "{{ ansible_distribution }}: create postgresql database"
+  postgresql_db:
+    name: "{{ pgdb_name }}"
+
+- name: "{{ ansible_distribution }}: create postgresql user"
+  postgresql_user:
+    db: "{{ pgdb_name }}"
+    name: "{{ pguser_name }}"
+    password: "{{ pguser_password }}"
+    priv: "CONNECT/{{ pgdb_name }}:ALL"
+    state: present

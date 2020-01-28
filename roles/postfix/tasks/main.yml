@@ -1,0 +1,26 @@
+--- # http://www.postfix.org/
+
+- name: "{{ ansible_distribution }}: install Postfix"
+  yum:
+    name: postfix
+
+- name: "{{ ansible_distribution }}: configure local only postfix"
+  block:
+  when: type == "local"
+
+# this 
+- name: "{{ ansible_distribution }}: configure postfix null client block"
+  block:
+
+myhostname = "{{ ansible_fqdn }}"
+myorigin = $mydomain
+mynetworks = 127.0.0.0/8, [::1]/128
+relayhost = "{{ mail_server }}"
+inet_interfaces = loopback-only
+local_transport=error: local delivery disabled
+
+  when: type == "null" or "satellite"
+
+- name: "{{ ansible_distribution }}: configure postfix as internet mail server"
+  block:
+  when: type == "internet" or "full"

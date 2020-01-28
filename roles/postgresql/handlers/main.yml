@@ -1,0 +1,7 @@
+---
+
+- name: "{{ ansible_distribution }}: postgresql service handler"
+  service:
+    enabled: true
+    name: postgresql-12
+    state: restarted
