@@ -1,0 +1,14 @@
+--- # I need to keep track of the Firefox plugins that I use
+## so they don't get neglected after a reinstall
+
+
+- DuckDuckGo as default search engine
+  # https://duckduckgo.com
+- buku & bukubrow
+  # https://github.com/jarun/Buku
+  # https://github.com/SamHH/bukubrow-webext
+  # https://github.com/SamHH/bukubrow-host
+- uBlock Origin
+  # https://github.com/gorhill/uBlock/
+- HTTPS Everywhere
+  # https://www.eff.org/https-everywhere/
