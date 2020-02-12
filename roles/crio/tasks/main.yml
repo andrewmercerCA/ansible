@@ -1,0 +1,47 @@
+---
+# https://kubernetes.io/docs/setup/production-environment/container-runtimes/#cri-o
+# https://github.com/cri-o/cri-o#getting-started
+
+- name: "{{ ansible_distribution }}: Configure Linux kernel modules used by Cri-O to load at boot"
+  copy:
+    content: |
+      overlay
+      br_netfilter
+  dest: /etc/modules-load.d/crio.conf
+
+- name: "{{ ansible_distribution }}: Load overlay and br_netfilter modules immediately"
+  modprobe:
+    name:
+      - br_netfilter
+      - overlay
+    state: present
+
+- name: "{{ ansible_distribution }}: Enable required kernel parameters persistently across reboots"
+  copy:
+    content: |
+      net.bridge.bridge-nf-call-iptables  = 1
+      net.ipv4.ip_forward                 = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+  dest: /etc/sysctl.d/99-kubernetes-cri.conf
+
+- name: "{{ ansible_distribution }}: Reload sysctl to load required kernel parameters immediately"
+  sysctl:
+    reload: yes
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+
+# According to the cri-o documentation (I started out using kubernetes'), you can just yum install crio
+#- name: "{{ ansible_distribution }}: Install Cri-O repository"
+#  command: yum-config-manager --add-repo=https://cbs.centos.org/repos/paas7-crio-115-release/x86_64/os/
+#  when: ansible_os_family == 'RedHat'
+
+- name: "{{ ansible_distribution }}: Install Cri-O"
+  yum:
+    disable_gpg_check: yes
+    name: crio
+  when: ansible_os_family == 'RedHat'
+
+- name: "{{ ansible_distribution }}: Enable and start cri-o"
+  service:
+    enabled: true
+    name: crio.service
+    state: started

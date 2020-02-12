@@ -1,6 +1,6 @@
 ---
 
-- name: "{{ansible_distribution}}: install the mariadb repo file"
+- name: "{{ ansible_distribution }}: install the mariadb repo file"
   copy:
     content: |
       # MariaDB {{galera_version}} CentOS repository list
@@ -14,7 +14,7 @@
     owner: root
   when: ansible_os_family == 'RedHat'
 
-- name: "{{ansible_distribution}}: install mariadb"
+- name: "{{ ansible_distribution }}: install mariadb"
   yum:
     name:
       - MariaDB-client
@@ -22,9 +22,8 @@
     state: present
   when:
     - ansible_os_family == 'RedHat'
-    - ansible_di
 
-- name: "{{ansible_distribution}}: galera firewall rules"
+- name: "{{ ansible_distribution }}: galera firewall rules"
   firewalld:
     immediate: yes
     permanent: true
@@ -36,7 +35,7 @@
     - 4567/tcp
     - 4568/tcp
 
-- name: "{{ansible_distribution}}: mysql firewall rules"
+- name: "{{ ansible_distribution }}: mysql firewall rules"
   firewalld:
     immediate: yes
     permanent: true
@@ -44,7 +43,7 @@
     state: enabled
     zone: public
 
-- name: "{{ansible_distribution}}: make sure selinux dependencies are installed"
+- name: "{{ ansible_distribution }}: make sure selinux dependencies are installed"
   yum:
     name:
       - libselinux-python
@@ -52,9 +51,9 @@
     state: present
   when: ansible_os_family == 'RedHat'
 
-- name: "{{ansible_distribution}}: configure selinux to allow galera ports"
+- name: "{{ ansible_distribution }}: configure selinux to allow galera ports"
   seport:
-    ports: "{{item}}"
+    ports: "{{ item }}"
     proto: tcp
     reload: true
     setype: mysqld_port_t
@@ -65,8 +64,41 @@
     - 4568
     - 4444
 
-- name: "{{ansible_distribution}}: grant selinux permissive for mysqld"
+- name: "{{ ansible_distribution }}: grant selinux permissive for mysqld"
   selinux_permissive:
     name: mysqld_t
     permissive: true
   when: ansible_os_family == 'RedHat'
+
+- name: "{{ ansible_distribution }}: configure galera.cnf"
+  copy:
+    contents: |
+      [galera]
+      wsrep_on=ON
+      wsrep_provider=/usr/lib64/galera/libgalera_smm.so
+      wsrep_cluster_name="cluster01"
+      wsrep_cluster_address="gcomm://{{ galera0_ip,galera1_ip,galera2_ip }}"
+      wsrep_sst_method=rsync
+      wsrep_node_address="{{ ansible.ipv4_address }}"
+      wsrep_node_name="cluster01"
+      binlog_format=row
+      default_storage_engine=InnoDB
+      innodb_autoinc_lock_mode=2
+      bind-address=0.0.0.0
+    dest: /etc/my.cnf.d/galera.cnf
+
+- name: "{{ ansible_distribution }}: make sure mariadb is stopped on all nodes"
+  service:
+    name: mariadb.service
+    state: stopped
+
+#- name: "{{ ansible_distribution }}: create new cluster"
+  # pick a node and run
+  # galera_new_cluster
+  #
+
+#- name: "{{ ansible_distribution }}: on the remaining nodes, start mariadb"
+  service:
+    enabled: true
+    name: mariadb.service
+    state: started

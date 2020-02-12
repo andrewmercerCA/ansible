@@ -1,55 +1,5 @@
 ---
 
-- name: "{{ ansible_distribution }}: enable br_netfilter linux module"
-  modprobe:
-    name: br_netfilter
-    state: present
-
-- name: "{{ ansible_distribution }}: turn on bridge-nf-call-iptables"
-  shell: echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
-#  sysctl:
-#    name: bridge-nf-call-iptables
-#    reload: yes
-#    state: present
-#    value: 1
-
-- name: "{{ ansible_distribution }}: open kubernetes ports"
-  firewalld:
-    immediate: yes
-    permanent: yes
-    port: "{{ item }}"
-    state: enabled
-    zone: public
-  with_items:
-    - 6443/tcp
-    - 10250/tcp
-
-- name: "{{ ansible_distribution }}: disable swap"
-  shell: swapoff -a
-
-## this block can be smarter:
-## use lininfile and handlers
-#####
-- name: "{{ ansible_distribution }}: configure docker to use systemd driver instead of cgroupfs driver"
-  shell: sed -i '/^ExecStart/ s/$/ --exec-opt native.cgroupdriver=systemd/' /usr/lib/systemd/system/docker.service
-
-- name: "{{ ansible_distribution }}: reload systemd daemon"
-  shell: systemctl daemon-reload
-
-- name: "{{ ansible_distribution }}: restart docker daemon"
-  service:
-    name: docker.service
-    state: restarted
-#####
-
-#- name: "{{ ansible_distribution }}: verify that docker is using systemd driver"
-#  shell: docker info --format '{{json .CgroupDriver}}'
-#  register: docker_driver
-#
-#- name: "{{ ansible_distribution }}: output docker_driver"
-#  debug:
-#    msg: "{{ docker_driver }}"
-
 - name: "{{ ansible_distribution }}: create kubernetes repo file"
   copy:
     content: |
@@ -62,33 +12,37 @@
       gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
     dest: /etc/yum.repos.d/kubernetes.repo
 
-- name: "{{ ansible_distribution }}: install kubernetes"
-  yum:
-    name:
-      - kubeadm
-      - kubectl
-      - kubelet
+- name: "{{ ansible_distribution }}: Kubernetes master node firewall ports"
+  block:
+    - name: "{{ ansible_distribution }}: open kubernetes ports"
+      firewalld:
+        immediate: yes
+        permanent: yes
+        port: "{{ item }}"
+        state: enabled
+        zone: public
+      with_items:
+        - 6443/tcp
+        - 2379-2380/tcp
+        - 10250/tcp
+        - 10251/tcp
+        - 10252/tcp
   when:
-    - ansible_distribution != 'Fedora'
+    - kube_role == 'master'
     - ansible_os_family == 'RedHat'
 
-- name: "{{ ansible_distribution }}: install kubernetes"
-  dnf:
-    name:
-      - kubeadm
-      - kubectl
-      - kubelet
-  when: ansible_distribution == 'Fedora'
-
-- name: "{{ ansible_distribution }}: start and enable kubelet"
-  service:
-    enabled: true
-    name: kubelet
-    state: started
-
-#- name: "{{ ansible_distribution }}: configure kuberenetes"
-#  file:
-#    group: {ansible_user_id}
-#    owner: {ansible_user_id}
-#    path: /home/{ansible_user_id}/.kube
-#    state: directory
+- name: "{{ ansible_distribution }}: Kubernetes worker node firewall ports"
+  block:
+    - name: "{{ ansible_distribution }}: open kubernetes ports"
+      firewalld:
+        immediate: yes
+        permanent: yes
+        port: "{{ item }}"
+        state: enabled
+        zone: public
+      with_items:
+        - 10250/tcp
+        - 30000-32767/tcp
+  when:
+    - kube_role == 'worker'
+    - ansible_os_family == 'RedHat'

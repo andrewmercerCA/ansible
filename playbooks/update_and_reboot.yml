@@ -1,0 +1,17 @@
+--- # https://opensource.com/article/18/3/ansible-patch-systems
+
+- name: update the system
+  yum:
+    name: "*"
+    state: latest
+
+- name: wait for 10 seconds
+  pause:
+    seconds: 10
+
+- name: wait for the system to reboot
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 5
+    timeout: 60
