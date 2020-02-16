@@ -1,0 +1,21 @@
+---
+# ansible-playbook --become -i ~/ansible/inventory/hosts.ini --extra-vars="target=[ inventory_group ]" ~/ansible/playbooks/set_hostname.yml
+
+- hosts: '{{ target }}'
+
+  tasks:
+
+  - name: get current hostname
+    shell: hostname
+    register: my_hostname
+
+  - name: debug
+    debug: msg={{ my_hostname.stdout }}
+
+  - name: "{{ ansible_distribution }}: Set node hostname"
+    hostname:
+      name: "{{ inventory_hostname }}"
+    when:
+      - my_hostname.stdout == "localhost"
+      # https://gist.github.com/phips/11233502
+      #- not inventory_hostname|match('(\d{1,3}\.){3}\d{1,3}')
