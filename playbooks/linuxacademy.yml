@@ -1,43 +1,43 @@
 ---
 
-# specify -i ~/ansible/playbooks/hosts
-# also include temporary vars like public ips, private ips, temporary passwords, etc
-# in ~/ansible/playbooks/linuxacademy_vars.yml
+# For now, configure ~/.ssh/config with host information
+# Also, I will run this one at a time on each node
 
-- hosts: all
+- hosts: "{{ target }}"
 
   tasks:
+
+  - name: Servers will ask to change password, need to figure out how to do this when prompted
+  #expect:
+  #  command: aws configure
+  #  responses:
+  #    (?i)AWS Access Key ID: "{{aws_key_id}}"
+  #    (?i)AWS Secret Access Key: "{{aws_secret_access_key}}"
+  #    (?i)Default region name: "{{default_region}}"
+  #    (?i)Default output format: "{{default_output}}"
+    shell: | 
+      set timeout 300
+      set existing_password "{{ existing_password }}"
+      set new_password "{{ new_password }}"
+      spawn ssh "{{ user_name }}@{{ external_ip }}"
+
+      expect "Password:"
+      send "$existing_password\r"
+      expect "*UNIX password:"
+      send "$existing_password\r"
+      expect "New password: "
+      send "$new_password\r"
+      expect "Retype new password:"
+      send "$new_password\r"
+
   - name: Copy personal public ssh key to nodes
-    shell: ssh-copy-id "{{item}}"
-    with_inventory_hostnames:
-      - all
+    become: true
+    become_user: "{{ user_name }}"
+    shell: ssh-copy-id "{{ ssh_public }}"
 
-- hosts: all
-
-  tasks: 
-  - name: Install Ansible
-    yum:
-      name: ansible
-    when: ansible_os_family == 'RedHat'
-
-  - name: Install Ansible
-    apt:
-      name: ansible
-    when: ansible_os_family == 'Debian'
-
-  #- name: Configure sudoers
-  #- name: Configure hosts
-
-- hosts: ansible_control # specify -i ~/ansible/playbooks/hosts
-  tasks:
-    - name: Create ssh key
-      become: true
-      become_user: "{{user}}"
-      shell: ssh-keygen -t rsa -b 4096 -C "Ansible Control Node" -q -N ""
-
-    - name: Copy ssh key to nodes
-      become: true
-      become_user: "{{user}}"
-      shell: ssh-copy-i "{{item}}"
-      with_inventory_hostnames:
-        - ansible_nodes
+  - name: Configure sudoers
+    become: true
+    become_user: "{{ user_name }}"
+    copy:
+      content: |
+        "{{ user_name }}" ALL=(ALL) NOPASSWD: ALL

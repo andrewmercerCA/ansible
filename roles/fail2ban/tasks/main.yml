@@ -3,7 +3,13 @@
   dnf:
     name: fail2ban
     state: present
-  when: ansible_distribution == 'Fedora'
+  when: ansible_distribution_family == 'RedHat'
+
+- name: "{{ ansible_distribution }}: install fail2ban"
+  apt:
+    name: fail2ban
+    state: present
+  when: ansible_distribution_family == 'Debian'
 
 - name: "{{ ansible_distribution }}: configure fail2ban"
   blockinfile:
@@ -11,31 +17,9 @@
     block: |
       [sshd]
       enabled = true
-  when: ansible_distribution == 'Fedora'
 
 - name: "{{ ansible_distribution }}: start and enable fail2ban"
   service:
     name: fail2ban
     enabled: yes
     state: restarted
-  when: ansible_distribution == 'Fedora'
-
-- name: "{{ ansible_distribution }}: install fail2ban"
-  apt:
-    name: fail2ban
-    state: present
-  when: ansible_distribution == 'Ubuntu'
-
-#- name: "{{ ansible_distribution }}: configure fail2ban"
-  #blockinfile:
-    #path: /etc/fail2ban/jail.d/00-firewalld.conf
-    #block: |
-      #[sshd]
-      #enabled = true
-
-- name: "{{ ansible_distribution }}: start and enable fail2ban"
-  service:
-    name: fail2ban
-    enabled: yes
-    state: restarted
-  when: ansible_distribution == 'Ubuntu'

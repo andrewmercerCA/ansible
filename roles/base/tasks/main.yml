@@ -90,6 +90,20 @@
       "{{ user }}" ALL=(ALL) NOPASSWD: ALL
     dest: /etc/sudoers.d/00-{{ user }}
 
+- name: "{{ ansible_distribution }}: create ssh directories"
+  shell: |
+    mkdir /home/{{ user }}/.ssh && \
+    chmod 0700 /home/{{ user }}/.ssh && \
+    touch /home/{{ user }}/.ssh/authorized_keys && \
+    chmod 0600 /home/{{ user }}/.ssh/authorized_keys && \
+    chown -R {{ user }}:{{ user }} /home/{{ user }}/.ssh
+
+- name: "{{ ansible_distribution }}: add public ssh key"
+  copy:
+    content: |
+      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCzhW87bXGJEf4AqWE6kppP/kH25GrNCyaZ5Rj7+HB5K/4XTsQKNoCwEDzEOz7Jhx8BJ4Az9VL7p9cfwqdeM/mtRF5IM/c/GRI8qpcOjQ84ziG5tyh9dNjbTRn0YlyHJJO+qGUwEimsdqM9x4Sfke/8FDUwBRJPavicqOwrHdMVAxxOBeUYP01h74+PEqfFdJVSZDDXtyg/0XA1Gx30KGC3DWzjjujfe/rT0U3IvDTPIRtj6HsdwbFdm59PDTJlHNr3BMUd1/6ZXPDNqOa2BuhhmvtSZOtRIY/lXLbTUuyZkIcKs4hJSw5iPmAN3S7U77/Wzvy5xeRhPnh6AEIKVRvHXtOe2nZTOVxlJnvFuSMsMPR5ndUyn0UPpx/idRvFPy1/1oYVpUl3gFureqGuB6eqkSSOwSwksvOzjU2r6qwEBFtjk0joiVPdN/gfiYrG+7vr/xCVMwAkJ00lGEhICtK0SDgDxuB3kKxHULSv8ewSu8sUdLTyE47AtFs0Z9gNlh0FialT+ZmLv4kT0bkYfTHbbS/FWAnHGLjL/cv8go+eSq8J5pmsLi7ppUOLQydNQBH2pIJXgDZ/xyIsxoXVHB2YUtCbejk7FEF+XVNiYIdHHbgmAVD8RSSOq2PEz5wxIX2jhCCkZFqzCGpWf2BfZImzI4JAB8y/0C+IXfpdAoSG1w== andrew@andrewmercer.net
+    dest: /home/{{ user }}/.ssh/authorized_keys
+
 - name: "{{ ansible_distribution }}: install selinux packages"
   yum:
     name: "{{ selinux_packages }}"

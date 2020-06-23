@@ -1,5 +1,61 @@
 ---
 
+- name: "{{ ansible_distribution }}: Configure hostname if required"
+  block:
+    - name: get current hostname
+      shell: hostname
+      register: my_hostname
+
+    - name: "{{ ansible_distribution }}: Set node hostname"
+      hostname:
+        name: "{{ inventory_hostname }}"
+      when:
+        - my_hostname.stdout == "localhost" or my_hostname.stdout == "localhost.localdomain"
+
+#- name: "{{ ansible_distribution }}: Configure /etc/hosts"
+#  block:
+
+- name: "{{ ansible_distribution }}: Configure firewall, swap and SELinux"
+  block:
+
+    - name: Disable and stop firewalld
+      firewalld:
+        enabled: no
+        state: stopped
+    when: kube_environment == 'test'
+
+    - name: Remove swap from /etc/fstab
+      mount:
+        name: "{{ item }}"
+        fstype: swap
+        state: absent
+      with_items:
+        - swap
+        - none
+
+   - name: Disable swap
+     command: swapoff -a
+     when: ansible_swaptotal_mb > 0
+ 
+    - name: Disable SELinux
+      selinux:
+        state: disabled
+    when: kube_environment == 'test'
+
+- name: "{{ ansible_distribution }}: Configure kernel variables"
+  block:
+    - name: Create /etc/sysctl.d/bridge-nf-call-iptables
+      sysctl:
+        name: "{{ item }}"
+        reload: yes
+        state: present
+        sysctl_file: /etc/sysctl.d/bridge-nf-call-iptables
+        value: '1'
+      with_items:
+        - net.bridge.bridge-nf-call-ip6tables
+        - net.bridge.bridge-nf-call-iptables
+      #notify: "reload sysctl"
+
 - name: "{{ ansible_distribution }}: create kubernetes repo file"
   copy:
     content: |
@@ -27,9 +83,11 @@
         - 10250/tcp
         - 10251/tcp
         - 10252/tcp
+        - 10255/tcp
 
     - name: "{{ ansible_distribution }}: add masquerade"
       firewalld:
+        immediate: yes
         masquerade: yes
         permanent: yes
         state: enabled
@@ -37,6 +95,7 @@
   when:
     - kube_role == 'master'
     - ansible_os_family == 'RedHat'
+    - kube_environment != 'test'
 
 - name: "{{ ansible_distribution }}: Kubernetes worker node firewall ports"
   block:
@@ -49,10 +108,12 @@
         zone: public
       with_items:
         - 10250/tcp
+        - 10255/tcp
         - 30000-32767/tcp
 
     - name: "{{ ansible_distribution }}: add masquerade"
       firewalld:
+        immediate: yes
         masquerade: yes
         permanent: yes
         state: enabled
@@ -60,3 +121,4 @@
   when:
     - kube_role == 'worker'
     - ansible_os_family == 'RedHat'
+    - kube_environment != 'test'

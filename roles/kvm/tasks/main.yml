@@ -7,9 +7,9 @@
   debug:
     msg: "{{ cpuinfo }}"
 
-- name: "{{ansible_distribution}}: install kvm and related packages"
+- name: "{{ ansible_distribution }}: install kvm and related packages"
   yum:
-    name: "{{kvm_packages}}"
+    name: "{{ kvm_packages }}"
   when:
     - ansible_os_family == 'RedHat'
     - ansible_distribution != 'Fedora'
@@ -19,11 +19,22 @@
     name: "@virtualization"
   when: ansible_distribution == 'Fedora'
 
-- name: "{{ansible_distribution}}: start and enable libvirtd"
+- name: "{{ ansible_distribution }}: Start and enable libvirtd"
   service:
     enabled: yes
     name: libvirtd.service
     state: started
+
+
+- name: "{{ ansible_distribution }}: Kernel network parameters"
+  copy:
+    content: |
+      bridge-nf-call-arptables = 0
+      bridge-nf-call-iptables = 0
+      bridge-nf-call-ip6tables = 0
+      bridge-nf-filter-vlan-tagged = 0
+      net.ipv4.ip_forward = 1
+    dest: /etc/sysctl.conf.d/00-kvm.conf
 
 # fatal: [192.168.0.52]: FAILED! => {"changed": false, "msg": "This module requires NetworkManager glib API"}
 #- name: "{{ ansible_distribution }}: create bridged interface"

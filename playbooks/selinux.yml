@@ -1,0 +1,19 @@
+---
+
+- hosts: "{{ target }}"
+
+  tasks:
+
+  - name: "{{ ansible_distribution }}: Disable SELinux"
+    block:
+      - name: Disable SELinux
+        selinux:
+          state: disabled
+    when: selinux_status == "disabled"
+
+  - name: "{{ ansible_distribution }}: Enable SELinux"
+    block:
+      - name: Enable SELinux
+        selinux:
+          state: enabled
+    when: selinux_status == "enforcing"

@@ -1,0 +1,7 @@
+---
+
+- name: "{{ ansible_distribution }}: Install a Matrix homeserver"
+  # https://matrix.org/docs/guides/installing-synapse
+  # https://github.com/matrix-org/synapse/blob/master/INSTALL.md
+  block:
+    

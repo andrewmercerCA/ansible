@@ -1,0 +1,4 @@
+---
+# https://www.rundeck.com/open-source
+
+- name: "{{ ansible_distribution }}: Install Rundeck"
