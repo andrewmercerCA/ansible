@@ -1,0 +1,10 @@
+[etcd]
+etcd0 ansible_host=192.168.0.148 ansible_user=amercer
+etcd1 ansible_host=192.168.0.139 ansible_user=amercer
+etcd2 ansible_host=192.168.0.133 ansible_user=amercer
+
+[etcd:vars]
+ETCD_VER=v3.4.10
+GOOGLE_URL=https://storage.googleapis.com/etcd
+GITHUB_URL=https://github.com/etcd-io/etcd/releases/download
+DOWNLOAD_URL={{GOOGLE_URL}}

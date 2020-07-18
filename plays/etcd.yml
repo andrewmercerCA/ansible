@@ -1,0 +1,141 @@
+---
+# https://etcd.io/docs/v3.4.0/op-guide/clustering/
+# https://devopscube.com/setup-etcd-cluster-linux/
+
+- hosts: etcd
+  become: yes
+  gather_facts: true
+
+  handlers:
+
+    - name: Restart systemd
+      systemd:
+        daemon_reload: yes
+      listen: Restart systemd
+  
+  tasks:
+
+    - name: What is my hostname
+      debug:
+        #msg: "{{ hostvars[item].ansible_hostname }}"
+        msg: "{{ inventory_hostname }}"
+
+    - name: Set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Update /etc/hosts
+      lineinfile:
+        dest: /etc/hosts
+        line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ hostvars[item].ansible_hostname }}"
+        # this only adds its own host entry
+        #line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }}"
+      with_items: "{{ groups.etcd }}"
+
+    - name: Firewall rules
+      firewalld:
+        immediate: yes
+        permanent: true
+        port: "{{item}}"
+        state: enabled
+        zone: public
+      with_items:
+        - 2379/tcp
+        - 2380/tcp
+
+    - name: Download etcd source
+      get_url:
+        dest: /tmp
+        url: "{{DOWNLOAD_URL}}/{{ETCD_VER}}/etcd-{{ETCD_VER}}-linux-amd64.tar.gz"
+
+    - name: Unpack tar archive
+      unarchive:
+        dest: /usr/local/bin
+        src: /tmp/etcd-{{ETCD_VER}}-linux-amd64.tar.gz
+
+    - name: Link binaries
+      file:
+        dest: /usr/local/bin/{{ item }}
+        src: /usr/local/bin/etcd-{{ETCD_VER}}-linux-amd64/{{ item }}
+        state: link
+      with_items:
+        - etcd
+        - etcdctl
+
+    - name: Create etcd group
+      group:
+        gid: 1501
+        name: etcd
+        state: present
+
+    - name: Create etcd user
+      user:
+        comment: "etcd user"
+        create_home: no
+        group: etcd
+        home: /var/lib/etcd
+        name: etcd
+        uid: 1501
+        shell: /bin/false
+        state: present
+
+    - name: Create etcd home directory
+      file:
+        group: etcd
+        mode: '0700'
+        owner: etcd
+        path: /var/lib/etcd
+        state: directory
+
+    #- name: Create etcd systemd service file
+    #  template:
+    #    dest: /etc/systemd/system/etcd.service
+    #    owner: root
+    #    group: root
+    #    mode: 0644
+    #    src: etcd.service.j2
+    #  notify: "Restart systemd"
+    #  with_items: "{{ groups.etcd }}"
+
+    - name: Create etcd systemd service file
+      copy:
+        content: |
+          [Unit]
+          Description=etcd service
+          Documentation=https://github.com/coreos/etcd
+
+          [Service]
+          User=etcd
+          Type=notify
+          ExecStart=/usr/local/bin/etcd \
+           --name {{ ansible_hostname }} \
+           --data-dir /var/lib/etcd \
+           --initial-advertise-peer-urls http://{{ ansible_default_ipv4.address }}:2380 \
+           --listen-peer-urls http://{{ ansible_default_ipv4.address }}:2380 \
+           --listen-client-urls http://{{ ansible_default_ipv4.address }}:2379,http://127.0.0.1:2379 \
+           --advertise-client-urls http://{{ ansible_default_ipv4.address }}:2379 \
+           --initial-cluster-token etcd-cluster-1 \
+           --initial-cluster etcd0=http://192.168.0.148:2380,etcd1=http://192.168.0.139:2380,etcd2=http://192.168.0.133:2380 \
+           --initial-cluster-state new \
+           --heartbeat-interval 1000 \
+           --election-timeout 5000
+          Restart=on-failure
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/etcd.service
+      notify: "Restart systemd"
+
+    - name: Start and enable etcd service
+      service:
+        enabled: yes
+        name: etcd.service
+        state: started
+
+  vars:
+    ETCD_VER: v3.4.10
+    GOOGLE_URL: https://storage.googleapis.com/etcd
+    GITHUB_URL: https://github.com/etcd-io/etcd/releases/download
+    DOWNLOAD_URL: "{{GOOGLE_URL}}"
+

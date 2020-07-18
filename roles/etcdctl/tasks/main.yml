@@ -1,0 +1,20 @@
+---
+
+- name: Download etcd source
+  get_url:
+    dest: /tmp
+    url: "{{DOWNLOAD_URL}}/{{ETCD_VER}}/etcd-{{ETCD_VER}}-linux-amd64.tar.gz"
+
+- name: Unpack tar archive
+  unarchive:
+    dest: /usr/local/bin
+    src: /tmp/etcd-{{ETCD_VER}}-linux-amd64.tar.gz
+
+- name: Link binaries
+  file:
+    dest: /usr/local/bin/{{ item }}
+    src: /usr/local/bin/etcd-{{ETCD_VER}}-linux-amd64/{{ item }}
+    state: link
+  with_items:
+    - etcd
+    - etcdctl
