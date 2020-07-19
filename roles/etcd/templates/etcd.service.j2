@@ -1,0 +1,32 @@
+# https://github.com/retr0h/ansible-etcd/blob/master/templates/etc/systemd/system/etcd.service.j2
+{% macro initial_cluster() -%}
+{% for host in groups['etcd'] -%}
+   {% if loop.last -%}
+{{ host }}=http://{{ hostvars[host][  "ansible_"+hostvars[host]["ansible_default_ipv4"]["interface"]  ]['ipv4']['address'] }}:2380
+   {%- else -%}
+{{ host }}=http://{{ hostvars[host][ "ansible_"+hostvars[host]["ansible_default_ipv4"]["interface"]  ]['ipv4']['address'] }}:2380,
+   {%- endif -%}
+{% endfor -%}
+{% endmacro -%}
+
+[Unit]
+Description=etcd service
+Documentation=https://github.com/coreos/etcd
+
+[Service]
+User=etcd
+Type=notify
+ExecStart=/usr/local/bin/etcd \
+ --name {{ ansible_hostname }} \
+ --data-dir /var/lib/etcd \
+ --initial-advertise-peer-urls http://{{ ansible_default_ipv4.address }}:2380 \
+ --listen-peer-urls http://{{ ansible_default_ipv4.address }}:2380 \
+ --listen-client-urls http://{{ ansible_default_ipv4.address }}:2379,http://127.0.0.1:2379 \
+ --advertise-client-urls http://{{ ansible_default_ipv4.address }}:2379 \
+ --initial-cluster-token etcd-cluster-1 \
+ --initial-cluster {{ initial_cluster() }} \
+ #--initial-cluster etcd0=http://192.168.0.148:2380,etcd1=http://192.168.0.139:2380,etcd2=http://192.168.0.133:2380 \
+ --initial-cluster-state new \
+ --heartbeat-interval 1000 \
+ --election-timeout 5000
+Restart=on-failure

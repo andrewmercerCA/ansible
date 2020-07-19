@@ -1,0 +1,12 @@
+# https://github.com/retr0h/ansible-etcd/blob/master/templates/etc/systemd/system/etcd.service.j2
+{% macro initial_cluster() -%}
+{% for host in groups['etcd'] -%}
+   {% if loop.last -%}
+{{ host }}=http://{{ hostvars[host][  "ansible_"+hostvars[host]["ansible_default_ipv4"]["interface"]  ]['ipv4']['address'] }}:2380
+   {%- else -%}
+{{ host }}=http://{{ hostvars[host][ "ansible_"+hostvars[host]["ansible_default_ipv4"]["interface"]  ]['ipv4']['address'] }}:2380,
+   {%- endif -%}
+{% endfor -%}
+{% endmacro -%}
+
+ --initial-cluster {{ initial_cluster() }}

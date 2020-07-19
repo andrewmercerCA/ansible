@@ -1,0 +1,25 @@
+---
+
+- hosts: etcd
+
+  tasks:
+
+    - name: Get the etcd_id
+      debug:
+        msg:
+        - "{{ hostvars[groups['etcd'][0]].etcd_id }}"
+        - "{{ hostvars[groups['etcd'][1]].etcd_id }}"
+        - "{{ hostvars[groups['etcd'][2]].etcd_id }}"
+
+    - name: Template
+      template:
+        dest: /tmp/etcd_test.out
+        src: etcd_test.j2
+
+    #- name: Test
+    #  debug:
+    #    msg: "{{ groups['etcd']|map('extract', hostvars, ['etcd_id'])|list }}"
+    #    
+    #- name: Test
+    #  debug:
+    #    msg: "{{ groups['etcd']|map('extract', hostvars, ['address'])|list }}"
