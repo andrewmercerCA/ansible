@@ -1,0 +1,121 @@
+---
+
+- name: Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Update /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ hostvars[item].ansible_hostname }}"
+  with_items: "{{ groups.zk }}"
+
+- name: Firewall rules
+  firewalld:
+    immediate: yes
+    permanent: true
+    port: "{{item}}"
+    state: enabled
+    zone: public
+  with_items:
+    - 2888/tcp
+    - 3888/tcp
+    - 2181/tcp
+
+- name: Download Zookeeper source
+  get_url:
+    dest: /tmp
+    url: "{{ URL }}"
+
+- name: Unpack tar archive
+  unarchive:
+    dest: /opt
+    src: /tmp/apache-zookeeper-{{ VERSION }}.tar.gz
+
+- name: Link binaries
+  file:
+    dest: /opt/zookeeper
+    src: /opt/apache-zookeeper-{{ VERSION }}
+    state: link
+
+- name: Create Zookeeper group
+  group:
+    name: zookeeper
+    state: present
+
+- name: Create Zookeeper user
+  user:
+    comment: "Zookeeper user"
+    create_home: no
+    group: zookeeper
+    home: /opt/zookeeper
+    name: zookeeper
+    shell: /sbin/nologin
+    state: present
+
+- name: Create Zookeeper data directory
+  file:
+    # change this later to /var/lib/zookeeper
+    dest: /opt/zookeeper/data
+    state: directory
+
+- name: Change ownership to zookeeper
+  file:
+    dest: /opt/zookeeper
+    group: zookeeper
+    owner: zookeeper
+    recurse: yes
+    state: directory
+
+- name: Create Zookeeper config
+  template:
+    dest: /opt/zookeeper/conf/zoo.cfg
+    group: zookeeper
+    owner: zookeeper
+    src: zoo.cfg.j2
+
+#- name: Create Zookeeper config
+#  copy:
+#    content: |
+#      tickTime=2000
+#      initLimit=10
+#      syncLimit=5
+#      dataDir=/opt/zookeeper/data
+#      clientPort=2181
+#      server.1={{ hostvars[item]['ansible_default_ipv4']['address'] }}:2888:3888
+#      server.2={{ hostvars[item]['ansible_default_ipv4']['address'] }}:2888:3888
+#      server.3={{ hostvars[item]['ansible_default_ipv4']['address'] }}:2888:3888
+#    dest: /opt/zookeeper/conf/zoo.cfg
+#  with_items: "{{ groups.zk }}"
+
+- name: Create Zookeeper systemd service file
+  copy:
+    content: |
+      [Unit]
+      Description=Zookeeper Service
+
+      [Service]
+      Type=simple
+      WorkingDirectory=/opt/zookeeper/
+      PIDFile=/opt/zookeeper/data/zookeeper_server.pid
+      SyslogIdentifier=zookeeper
+      User=zookeeper
+      Group=zookeeper
+      ExecStart=/opt/zookeeper/bin/zkServer.sh start
+      ExecStop=/opt/zookeeper/bin/zkServer.sh stop
+      Restart=always
+      TimeoutSec=20
+      SuccessExitStatus=130 143
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/zookeeper.service
+  notify: "Restart systemd"
+
+- name: Start and enable Zookeeper service
+  service:
+    enabled: yes
+    name: zookeeper.service
+    state: started
+

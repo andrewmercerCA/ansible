@@ -1,0 +1,2 @@
+URL: https://www.apache.org/dyn/closer.lua/zookeeper/zookeeper-{{ VERSION}}/apache-zookeeper-{{ VERSION }}.tar.gz
+VERSION: 3.6.1
