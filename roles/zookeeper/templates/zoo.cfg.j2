@@ -6,3 +6,14 @@ clientPort=2181
 {% for host in groups.zk %}
 server.{{ hostvars[host].zk_id }}={{ hostvars[host].ipv4_address|default(hostvars[host]['ansible_default_ipv4']['address']) }}:2888:3888
 {% endfor %}
+
+another example
+https://stackoverflow.com/questions/30940981/zookeeper-error-cannot-open-channel-to-x-at-election-address
+{% for url in zookeeper_hosts_list %}
+  {%- set url_host = url.split(':')[0] -%}
+  {%- if url_host == ansible_fqdn or url_host in     ansible_all_ipv4_addresses -%}
+server.{{loop.index0}}=0.0.0.0:2888:3888
+{% else %}
+server.{{loop.index0}}={{url_host}}:2888:3888
+{% endif %}
+{% endfor %}

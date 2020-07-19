@@ -30,12 +30,12 @@
 - name: Unpack tar archive
   unarchive:
     dest: /opt
-    src: /tmp/apache-zookeeper-{{ VERSION }}.tar.gz
+    src: /tmp/apache-zookeeper-{{ VERSION }}-bin.tar.gz
 
 - name: Link binaries
   file:
     dest: /opt/zookeeper
-    src: /opt/apache-zookeeper-{{ VERSION }}
+    src: /opt/apache-zookeeper-{{ VERSION }}-bin
     state: link
 
 - name: Create Zookeeper group
@@ -55,8 +55,9 @@
 
 - name: Create Zookeeper data directory
   file:
-    # change this later to /var/lib/zookeeper
-    dest: /opt/zookeeper/data
+    dest: /var/lib/zookeeper
+    group: zookeeper
+    owner: zookeeper
     state: directory
 
 - name: Change ownership to zookeeper

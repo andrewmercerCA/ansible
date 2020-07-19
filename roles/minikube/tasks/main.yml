@@ -1,26 +1,8 @@
 ---
-# https://minikube.sigs.k8s.io/docs/start/linux/
+# https://kubernetes.io/docs/tasks/tools/install-minikube/
 
-- name: "{{ ansible_distribution }}: Install KVM Virtualization Tools"
-  yum:
-    name:
-      - qemu-kvm
-      - libvirt
-      - libvirt-python
-      - libguestfs-tools
-      - virt-install
-
-- name: "{{ ansible_distribution }}: Start and enable libvirtd.service"
-  service:
-    enabled: true
-    name: libvirtd.service
-    state: started
-
-- name: "{{ ansible_distribution }}: Add non-root user of your choice to libvirt group"
-  user:
-    name: "{{ minikube_user }}"
-    groups: libvirt
-
-- name: "{{ ansible_distribution }}: Install Minikube binary"
-  yum:
-    name: https://storage.googleapis.com/minikube/releases/latest/minikube-1.7.2-0.x86_64.rpm
+- name: "{{ ansible_distribution }}: Download Minikube binary"
+  get_url:
+    dest: /usr/local/bin/minikube
+    mode: 0755
+    url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
