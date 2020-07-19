@@ -1,5 +1,5 @@
 ---
 
 - name: "{{ ansible_distribution }}: Install Go"
-  dnf:
+  yum:
     name: golang

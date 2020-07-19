@@ -1,0 +1,12 @@
+- hosts: localhost
+
+  tasks:
+
+    - name: "{{ ansible_distribution }}: Get CPU count"
+      shell: cat /proc/cpuinfo | grep processor | wc -l
+      register: cpu_count
+
+    - name: "{{ ansible_distribution }}: Test"
+      debug:
+        msg: "{{cpu_count.stdout}}"
+

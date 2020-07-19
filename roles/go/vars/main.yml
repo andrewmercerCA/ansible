@@ -1,0 +1,6 @@
+---
+# msg: Could not import the dnf python module. Please install `python3-dnf` package.
+# https://github.com/ansible/ansible/issues/67083
+# This is a known limitation of the dnf module. The dnf module depends on the underlying python bindings provided by the OS. The only dnf python bindings provided by the OS are those for the default python, which is /usr/bin/python (python2). It is not possible or feasible to use a non-default python to manage dnf. As such, you will have to ensure that you set ansible_python_interpreter: /usr/bin/python for any task which needs to interact with things like dnf or selinux. This is a limitation of the underlying operating system and the packages it provides.
+
+ansible_python_interpreter: /usr/bin/python

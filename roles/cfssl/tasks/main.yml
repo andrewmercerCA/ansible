@@ -1,0 +1,32 @@
+---
+
+- name: "{{ ansible_distribution }}: Download source code"
+  git:
+    dest: /tmp/cfssl
+    clone: yes
+    repo: https://github.com/cloudflare/cfssl.git
+
+- name: "{{ ansible_distribution }}: Get CPU count"
+  shell: cat /proc/cpuinfo | grep processor | wc -l
+  register: cpu_count
+
+- name: "{{ ansible_distribution }}: Test"
+  debug:
+    msg: "{{cpu_count.stdout}}"
+
+- name: "{{ ansible_distribution }}: Build"
+  make:
+    chdir: /tmp/cfssl
+    params:
+      NUM_THREADS: "{{ cpu_count.stdout }}"
+
+- name: "{{ ansible_distribution }}: Install"
+  copy:
+    dest: "/home/{{ user }}/.local/bin"
+    group: "{{ user }}"
+    mode: 0755
+    owner: "{{ user }}"
+    src: "{{ item }}"
+  with_items:
+    - /tmp/cfssl/bin/cfssl
+    - /tmp/cfssl/bin/cfssljson
