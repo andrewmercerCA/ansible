@@ -4,6 +4,7 @@
   yum:
     name:
       - httpd
+      - httpd-devel
       - mod_ssl
     state: present
   when:

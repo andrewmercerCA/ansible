@@ -1,0 +1,42 @@
+---
+
+- name: Install epel-release & remi-release-7
+  yum:
+    name:
+      - epel-release
+      - http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+
+- name: Enable remi-release-7
+  command: yum-config-manager --enable remi-php72
+
+- name: Install php72
+  yum:
+    name:
+      - php72
+      - php72-php-intl
+      - php72-php-pdo
+      - php72-php-mysqlnd
+      - php72-php-mbstring
+      - php72-php-xml
+
+- name: Download Mediawiki source
+  get_url:
+    dest: /tmp
+    url: https://releases.wikimedia.org/mediawiki/{{ MAJOR_VERSION }}/mediawiki-{{ MAJOR_VERSION }}.{{ MINOR_VERSION }}.tar.gz
+
+# why the fuck is this not working?
+#- name: Extract Mediawiki source
+#  unarchive:
+#    dest: /srv/mediawiki-{{ MAJOR_VERSION }}.{{ MINOR_VERSION }}
+#    src: /tmp/mediawiki-{{ MAJOR_VERSION }}.{{ MINOR_VERSION }}.tar.gz
+#    remote_src: yes
+#
+#- name: Link
+#  file:
+#    dest: /srv/mediaiwki
+#    src: /srv/mediawiki-{{ MAJOR_VERSION }}.{{ MINOR_VERSION }}
+
+semanage fcontext -a -t httpd_sys_rw_content_t "/srv/mediawiki(/.*)?"
+restorecon -Rv /srv/mediawiki
+
+create mediawiki database

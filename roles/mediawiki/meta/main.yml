@@ -1,0 +1,6 @@
+---
+dependencies:
+  #- { role: apache }
+  #- { role: mariadb }
+  # this role doesn't work
+  #- { role: php }

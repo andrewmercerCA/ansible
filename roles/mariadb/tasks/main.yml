@@ -3,7 +3,8 @@
 - name: "{{ ansible_distribution }}: things that still need to be done"
   debug:
     msg:
-      - 'mysql_secure_installation'
+      - Check mysql_secure_installation
+      - Configure admin password
 
 - name: "{{ ansible_distribution }}: install mariadb-server"
   yum:
