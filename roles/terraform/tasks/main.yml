@@ -1,0 +1,19 @@
+---
+
+- name: "{{ ansible_distribution }}: Remove old version of terraform"
+  file:
+    dest: /usr/local/bin/terraform
+    state: absent
+
+- name: "{{ansible_distribution}}: Download and unpack terraform"
+  unarchive:
+    dest: /usr/local/src
+    remote_src: yes
+    src: https://releases.hashicorp.com/terraform/{{ VERSION }}/terraform_{{ VERSION }}_linux_amd64.zip
+
+- name: "{{ansible_distribution}}: Create symlink to binary to fix conflict with name 'terraform'"
+  # cracklib also has a library named terraform which creates a conflict with Hashicorp's terraform
+  file:
+    dest: /usr/local/bin/terraform
+    src: /usr/local/src/terraform
+    state: link

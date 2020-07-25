@@ -1,0 +1,7 @@
+---
+
+- name: "{{ ansible_distribution }}: Remove old version of packer"
+  file:
+    dest: /usr/local/bin/packer.io
+    state: absent
+  when: update == "true"

@@ -1,0 +1,19 @@
+---
+
+- name: "{{ ansible_distribution }}: Remove old version of consul"
+  file:
+    dest: /usr/local/bin/consul
+    state: absent
+
+- name: "{{ansible_distribution}}: Download and unpack consul"
+  unarchive:
+    dest: /usr/local/src
+    remote_src: yes
+    src: https://releases.hashicorp.com/consul/{{ VERSION }}/consul_{{ VERSION }}_linux_amd64.zip
+
+- name: "{{ansible_distribution}}: Create symlink to binary to fix conflict with name 'consul'"
+  # cracklib also has a library named consul which creates a conflict with Hashicorp's consul
+  file:
+    dest: /usr/local/bin/consul
+    src: /usr/local/src/consul
+    state: link

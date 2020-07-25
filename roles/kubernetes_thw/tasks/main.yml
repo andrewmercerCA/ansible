@@ -1,0 +1,8 @@
+---
+
+- name: Install Go
+
+- name: Install cfssl
+  # https://github.com/cloudflare/cfssl
+
+- name: Install kubectl

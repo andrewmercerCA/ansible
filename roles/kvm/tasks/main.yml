@@ -34,7 +34,7 @@
       bridge-nf-call-ip6tables = 0
       bridge-nf-filter-vlan-tagged = 0
       net.ipv4.ip_forward = 1
-    dest: /etc/sysctl.conf.d/00-kvm.conf
+    dest: /etc/sysctl.d/00-kvm.conf
 
 # fatal: [192.168.0.52]: FAILED! => {"changed": false, "msg": "This module requires NetworkManager glib API"}
 #- name: "{{ ansible_distribution }}: create bridged interface"

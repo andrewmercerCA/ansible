@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - terraform
+  # post_tasks: 
+  # tags:

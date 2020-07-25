@@ -1,0 +1,19 @@
+---
+
+- name: "{{ ansible_distribution }}: Remove old version of vault"
+  file:
+    dest: /usr/local/bin/vault
+    state: absent
+
+- name: "{{ansible_distribution}}: Download and unpack vault"
+  unarchive:
+    dest: /usr/local/src
+    remote_src: yes
+    src: https://releases.hashicorp.com/vault/{{ VERSION }}/vault_{{ VERSION }}_linux_amd64.zip
+
+- name: "{{ansible_distribution}}: Create symlink to binary to fix conflict with name 'vault'"
+  # cracklib also has a library named vault which creates a conflict with Hashicorp's vault
+  file:
+    dest: /usr/local/bin/vault
+    src: /usr/local/src/vault
+    state: link

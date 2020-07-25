@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - vault
+  # post_tasks: 
+  # tags:

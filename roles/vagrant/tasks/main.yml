@@ -1,0 +1,19 @@
+---
+
+- name: "{{ ansible_distribution }}: Remove old version of vagrant"
+  file:
+    dest: /usr/local/bin/vagrant
+    state: absent
+
+- name: "{{ansible_distribution}}: Download and unpack vagrant"
+  unarchive:
+    dest: /usr/local/src
+    remote_src: yes
+    src: https://releases.hashicorp.com/vagrant/{{ VERSION }}/vagrant_{{ VERSION }}_linux_amd64.zip
+
+- name: "{{ansible_distribution}}: Create symlink to binary to fix conflict with name 'vagrant'"
+  # cracklib also has a library named vagrant which creates a conflict with Hashicorp's vagrant
+  file:
+    dest: /usr/local/bin/vagrant
+    src: /usr/local/src/vagrant
+    state: link
