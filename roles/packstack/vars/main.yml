@@ -1,0 +1,4 @@
+DNS_IP: "{{ dns_ip }}"
+GW_IP: "{{ gw_ip }}"
+STATIC_IP: "{{ static_ip }}"
+VERSION: "{{ version }}"
