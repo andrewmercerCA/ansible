@@ -10,3 +10,6 @@ kvm_packages:
   - virt-install
   - virt-manager
   - virt-viewer
+DNS_IP: "{{ dns_ip }}"
+GW_IP: "{{ gw_ip }}"
+STATIC_IP: "{{ static_ip }}"
