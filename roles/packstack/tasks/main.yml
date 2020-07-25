@@ -1,101 +1,99 @@
 ---
 
-- name: "{{ansible_distribution}}: uninstall packstack"
+- name: "{{ ansible_distribution }}: uninstall packstack"
   include: uninstall.yml
   when: uninstall == "True"
 
-- name: "{{ ansible_distribution }}: disable firewalld, NetworkManager"
-  service:
-    enabled: no
-    name: "{{ item }}"
-    state: stopped
-  with_items:
-    - firewalld
-    - NetworkManager
+- name: "{{ ansible_distribution }}: Configure server for Packstack"
+  block:
+    - name: "{{ ansible_distribution }}: disable firewalld, NetworkManager"
+      service:
+        enabled: no
+        name: "{{ item }}"
+        state: stopped
+      with_items:
+        - firewalld
+        - NetworkManager
 
-- name: "{{ ansible_distribution }}: configure network"
-  service:
-    enabled: yes
-    name: network
-    state: started
+    - name: "{{ ansible_distribution }}: configure network"
+      service:
+        enabled: yes
+        name: network
+        state: started
 
-- name: "{{ ansible_distribution }}: configure eth0"
-  copy:
-    content: |
-      TYPE=Ethernet
-      NAME=eth0
-      #UUID=9e57c66f-8e57-48d2-87f1-101e276bcc86
-      DEVICE=eth0
-      ONBOOT=yes
-      BRIDGE=br0
-    dest: /etc/sysconfig/network-scripts/ifcfg-eth0
-  notify: restart-network
+    - name: "{{ ansible_distribution }}: configure eth0"
+      copy:
+        content: |
+          TYPE=Ethernet
+          NAME=eth0
+          DEVICE=eth0
+          ONBOOT=yes
+          BRIDGE=br0
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+      notify: restart-network
 
-- name: "{{ ansible_distribution }}: configure br0"
-  copy:
-    content: |
-      STP=yes
-      BRIDGING_OPTS=priority=32768
-      TYPE=Bridge
-      PROXY_METHOD=none
-      BROWSER_ONLY=no
-      BOOTPROTO=none
-      DEFROUTE=yes
-      IPV4_FAILURE_FATAL=no
-      IPV6INIT=yes
-      IPV6_AUTOCONF=yes
-      IPV6_DEFROUTE=yes
-      IPV6_FAILURE_FATAL=no
-      IPV6_ADDR_GEN_MODE=stable-privacy
-      NAME=br0
-      #UUID=ab67e494-8971-4aa0-9ed9-9c8c2e3cac15
-      DEVICE=br0
-      ONBOOT=yes
-      IPADDR=192.168.0.52
-      PREFIX=24
-      GATEWAY=192.168.0.1
-      DNS1=192.168.0.1
-    dest: /etc/sysconfig/network-scripts/ifcfg-br0
-  notify: restart-network
+    - name: "{{ ansible_distribution }}: configure br0"
+      copy:
+        content: |
+          STP=yes
+          BRIDGING_OPTS=priority=32768
+          TYPE=Bridge
+          PROXY_METHOD=none
+          BROWSER_ONLY=no
+          BOOTPROTO=none
+          DEFROUTE=yes
+          IPV4_FAILURE_FATAL=no
+          IPV6INIT=yes
+          IPV6_AUTOCONF=yes
+          IPV6_DEFROUTE=yes
+          IPV6_FAILURE_FATAL=no
+          IPV6_ADDR_GEN_MODE=stable-privacy
+          NAME=br0
+          DEVICE=br0
+          ONBOOT=yes
+          IPADDR={{ STATIC_IP }}
+          PREFIX=24
+          GATEWAY={{ GW_IP }}
+          DNS1={{ DNS_IP }}
+        dest: /etc/sysconfig/network-scripts/ifcfg-br0
+      notify: restart-network
 
-- name: "{{ansible_distribution}}: install dependencies"
-  yum:
-    name:
-      - python-zmq
-    state: installed
-  when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution != 'Fedora'
-    - uninstall != 'True'
+- name: "{{ ansible_distribution }}: Install Packstack"
+  block:
+    - name: "{{ansible_distribution}}: install dependencies"
+      yum:
+        name:
+          - python-zmq
+        state: installed
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution != 'Fedora'
 
-- name: "{{ansible_distribution}}: install dependencies"
-  dnf:
-    name:
-      - python-zmq
-    state: installed
-  when:
-  - ansible_distribution == 'Fedora'
-  - uninstall != 'True'
+    - name: "{{ansible_distribution}}: install dependencies"
+      dnf:
+        name:
+          - python-zmq
+        state: installed
+      when: ansible_distribution == 'Fedora'
 
-- name: "{{ansible_distribution}}: packstack release"
-  yum:
-    name: centos-release-openstack-rocky
-    state: installed
-  when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution != 'Fedora'
-    - uninstall != 'True'
+    - name: "{{ansible_distribution}}: packstack release"
+      yum:
+        name: centos-release-openstack-{{ VERSION }}
+        state: installed
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution != 'Fedora'
 
-- name: "{{ansible_distribution}}: install packstack"
-  yum:
-    name: openstack-packstack
-    state: installed
-  when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution != 'Fedora'
-    - uninstall != 'True'
+    - name: "{{ansible_distribution}}: install packstack"
+      yum:
+        name: openstack-packstack
+        state: installed
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution != 'Fedora'
 
-- name: "{{ansible_distribution}}: run the standalone installer"
-  shell: packstack --allinone
+    - name: "{{ansible_distribution}}: run the standalone installer"
+      shell: packstack --allinone
+
   when:
     - uninstall != 'True'
