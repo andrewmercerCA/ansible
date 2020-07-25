@@ -36,38 +36,28 @@
       net.ipv4.ip_forward = 1
     dest: /etc/sysctl.d/00-kvm.conf
 
-- name: "{{ ansible_distribution }}: Install NetworkManager-glib which is required for the nmcli module"
-  yum:
-    name: NetworkManager-glib
-  when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution != 'Fedora'
-
-- name: "{{ ansible_distribution }}: Install NetworkManager-glib which is required for the nmcli module"
-  # https://github.com/ansible/ansible/issues/38042
-  dnf:
-    name: NetworkManager-glib
-  when: ansible_distribution == 'Fedora'
-
-- name: "{{ ansible_distribution }}: create bridged interface"
-  nmcli:
-    autoconnect: yes
-    conn_name: br0
-    ifname: eth0
-    type: bridge
-    state: present
-
-#- name: "{{ ansible_distribution }}: attach interface to bridge"
-#  nmcli:
-#    conn_name: eth0
-#    ifname: eth0
-#    master: br0
-#    type: ethernet
-#    state: present
-
-# fatal: [192.168.0.52]: FAILED! => {"changed": false, "msg": "This module requires NetworkManager glib API"}
+# Wow. These still don't work.
+#- name: "{{ ansible_distribution }}: Install dependencies required for the nmcli module"
+#  # https://docs.ansible.com/ansible/latest/modules/nmcli_module.html
+#  #
+#  # https://github.com/ansible/ansible/issues/38042
+#  # fatal: [192.168.0.52]: FAILED! => {"changed": false, "msg": "This module requires NetworkManager glib API"}
+#  #
+#  # https://github.com/ansible/ansible/pull/58115
+#  # The error was: TypeError: argument of type 'int' is not iterable
+#  yum:
+#    name:
+#      - NetworkManager-glib
+#      - libnm-qt-devel
+#      - nm-connection-editor
+#      - libsemanage-python
+#      - policycoreutils-python
+#  when: ansible_os_family == 'RedHat'
+#
+#
 #- name: "{{ ansible_distribution }}: create bridged interface"
 #  nmcli:
+#    autoconnect: yes
 #    conn_name: br0
 #    ifname: eth0
 #    type: bridge
@@ -80,11 +70,12 @@
 #    master: br0
 #    type: ethernet
 #    state: present
-#
-#nmcli connection add type bridge autoconnect yes con-name br0 ifname br0
-#nmcli connection modify br0 ipv4.addresses 192.168.0.50/24 ipv4.method manual
-#nmcli connection modify br0 ipv4.gateway 192.168.0.1
-#nmcli connection modify br0 ipv4.dns 192.168.0.1
-#nmcli connection add type bridge-slave autoconnect yes con-name eth0 ifname eth0 master br0
-#nmcli connection delete Wired\ Connection\ 1
-#shutdown -r now
+
+- name: "{{ ansible_distribution }}: Configure bridged interface"
+  shell: |
+    nmcli connection add type bridge autoconnect yes con-name br0 ifname br0
+    nmcli connection modify br0 ipv4.addresses {{ STATIC_IP }}/24 ipv4.method manual
+    nmcli connection modify br0 ipv4.gateway {{ GW_IP }}
+    nmcli connection modify br0 ipv4.dns {{ DNS_IP }}
+    nmcli connection add type bridge-slave autoconnect yes con-name eth0 ifname eth0 master br0
+    nmcli connection delete Wired\ Connection\ 1
