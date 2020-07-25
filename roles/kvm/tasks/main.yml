@@ -51,7 +51,7 @@
 
 - name: "{{ ansible_distribution }}: create bridged interface"
   nmcli:
-    autoconnet: yes
+    autoconnect: yes
     conn_name: br0
     ifname: eth0
     type: bridge
