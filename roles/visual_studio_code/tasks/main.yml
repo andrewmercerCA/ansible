@@ -1,0 +1,11 @@
+---
+
+- name: "{{ ansible_distribution }}: Download Visual Studio Code RPM"
+  get_url:
+    dest: /tmp/vscode.rpm
+    url: https://go.microsoft.com/fwlink/?LinkID=760867
+
+- name: "{{ ansible_distribution }}: Install Visual Studio Code"
+  yum:
+    name: /tmp/vscode.rpm
+    state: present

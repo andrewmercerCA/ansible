@@ -1,0 +1,7 @@
+--- 
+- hosts: '{{target}}' 
+  # pre_tasks: 
+  roles: 
+    - visual_studio_code
+  # post_tasks: 
+  # tags:
