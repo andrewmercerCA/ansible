@@ -1,9 +1,9 @@
 {% macro initial_cluster() -%}
 {% for host in groups['cluster'] -%}
    {% if loop.last -%}
-{{ host }}=gcomm://{{ hostvars[host][  "ansible_"+hostvars[host]["ansible_default_ipv4"]["interface"]  ]['ipv4']['address'] }}
+{{ host }}={{ [  "ansible_"+hostvars[host]["ansible_default_ipv4"]["interface"]  ]['ipv4']['address'] }}
    {%- else -%}
-{{ host }}=gcomm://{{ hostvars[host][ "ansible_"+hostvars[host]["ansible_default_ipv4"]["interface"]  ]['ipv4']['address'] }},
+{{ host }}={{ [ "ansible_"+hostvars[host]["ansible_default_ipv4"]["interface"]  ]['ipv4']['address'] }},
    {%- endif -%}
 {% endfor -%}
 {% endmacro -%}
@@ -12,7 +12,7 @@
 wsrep_on=ON
 wsrep_provider=/usr/lib64/galera/libgalera_smm.so
 wsrep_cluster_name="cluster01"
-wsrep_cluster_address="{{ initial_cluster() }}"
+wsrep_cluster_address="gcomm://{{ initial_cluster() }}"
 wsrep_sst_method=rsync
 wsrep_node_address="{{ ansible_default_ipv4.address }}"
 wsrep_node_name="cluster01"
