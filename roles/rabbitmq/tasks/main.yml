@@ -1,0 +1,27 @@
+---
+
+- name: "{{ ansible_distribution }}: Install RabbitMQ"
+  yum:
+    name: rabbitmq-server
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+
+- name: "{{ ansible_distribution }}: Start and enable RabbitMQ service"
+  service:
+    enabled: yes
+    name: rabbitmq-server.service
+    state: started
+
+- name: "{{ ansible_distribution }}: RabbitMQ firewall rules"
+  firewalld:
+    immediate: yes
+    permanent: true
+    port: "{{item}}"
+    state: enabled
+    zone: public
+  with_items:
+    - 4369/tcp
+    - 5672/tcp
+    - 15672/tcp
+    - 25672/tcp
